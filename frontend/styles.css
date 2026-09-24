@@ -21,14 +21,20 @@ button { border: 0; border-radius: 12px; padding: 14px 18px; background: #0b1d3a
 button:hover { background: #162d50; }
 .secondary { background: #8b6b27; width: 100%; }
 .result { margin-top: 20px; padding: 22px; border-radius: 14px; background: #fbf5e8; border: 1px solid #e4d7b9; }
-.result h3 { margin-top: 0; }
+.result h3 { margin-top: 24px; color: #0b1d3a; }
+.result h3:first-child { margin-top: 0; }
 .result ul { padding-left: 20px; }
+.report-cover-mini { text-align: center; padding: 18px 10px 24px; margin-bottom: 20px; border-bottom: 1px solid #d9cba9; }
+.report-cover-mini h3 { font-size: 28px; color: #0b1d3a; margin: 8px 0 2px; }
+.zodiac-badge { width: 100px; height: 100px; margin: 0 auto 12px; border: 2px solid #c9a75a; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fffaf0; color: #0b1d3a; }
+.zodiac-badge strong { font-size: 25px; letter-spacing: 1px; }
+.zodiac-badge span { font-size: 11px; color: #8b6b27; text-transform: uppercase; }
+.report-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.report-grid p { margin: 0; padding: 12px; border: 1px solid #dfd1ad; border-radius: 10px; background: #fffdf7; font-size: 14px; }
+.report-preview > p { margin: 10px 0; }
+.disclaimer { font-size: 12px; margin-top: 22px; }
 .report-hero { text-align: center; border-bottom: 1px solid #d9cba9; padding-bottom: 16px; margin-bottom: 18px; }
 .report-hero h3 { font-size: 26px; color: #0b1d3a; margin: 6px 0; }
-.report-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.report-grid article, .result section { background: #fffdf7; border: 1px solid #dfd1ad; border-radius: 10px; padding: 14px; }
-.report-grid article h4, .result section h4 { margin: 0 0 8px; color: #0b1d3a; }
-.report-grid article p { margin: 6px 0; font-size: 14px; }
 .report-note { font-size: 12px; color: #667085; margin-top: 18px; }
 .error-message { color: #a11; font-weight: 700; }
 footer { text-align: center; color: #667085; padding: 25px; }
