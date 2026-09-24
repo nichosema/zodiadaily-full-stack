@@ -14,12 +14,9 @@ const ZODIAC = [
 ];
 
 const MONTH_DATA = {
-  1: ["Garnet", "Carnation", "Deep red, burgundy and warm neutrals"], 2: ["Amethyst", "Violet", "Purple, lilac and soft blue"],
-  3: ["Aquamarine", "Daffodil", "Sea blue, yellow and fresh green"], 4: ["Diamond", "Daisy", "White and pastel tones"],
-  5: ["Emerald", "Lily of the valley", "Green, mint and natural tones"], 6: ["Pearl", "Rose", "Cream, rose and soft silver"],
-  7: ["Ruby", "Water lily", "Ruby red, coral and warm pink"], 8: ["Peridot", "Gladiolus", "Gold, orange and warm red"],
-  9: ["Sapphire", "Morning glory", "Royal blue, navy and violet"], 10: ["Opal", "Marigold", "Amber, peach and pastel tones"],
-  11: ["Topaz", "Chrysanthemum", "Gold, bronze and autumn tones"], 12: ["Turquoise", "Narcissus", "Turquoise, silver and winter blue"]
+  1: ["Garnet", "Carnation", "Deep red, burgundy and warm neutrals"], 2: ["Amethyst", "Violet", "Purple, lilac and soft blue"], 3: ["Aquamarine", "Daffodil", "Sea blue, yellow and fresh green"], 4: ["Diamond", "Daisy", "White and pastel tones"],
+  5: ["Emerald", "Lily of the valley", "Green, mint and natural tones"], 6: ["Pearl", "Rose", "Cream, rose and soft silver"], 7: ["Ruby", "Water lily", "Ruby red, coral and warm pink"], 8: ["Peridot", "Gladiolus", "Gold, orange and warm red"],
+  9: ["Sapphire", "Morning glory", "Royal blue, navy and violet"], 10: ["Opal", "Marigold", "Amber, peach and pastel tones"], 11: ["Topaz", "Chrysanthemum", "Gold, bronze and autumn tones"], 12: ["Turquoise", "Narcissus", "Turquoise, silver and winter blue"]
 };
 
 const ELEMENT_TEXT = {
@@ -30,11 +27,11 @@ const ELEMENT_TEXT = {
 };
 
 function digitSum(value) { return String(value).replace(/\D/g, "").split("").reduce((sum, n) => sum + Number(n), 0); }
-function reduceNumber(value) { let result = value; while (result > 9 && ![11, 22, 33].includes(result)) result = digitSum(result); return result; }
+function reduceNumber(value) { let result = Number(value); while (result > 9 && ![11, 22, 33].includes(result)) result = digitSum(result); return result; }
 function lifePath(dateString) { return reduceNumber(digitSum(dateString)); }
 function birthdayNumber(day) { return reduceNumber(day); }
 function attitudeNumber(month, day) { return reduceNumber(month + day); }
-function personalYear(month, day, year) { return reduceNumber(month + day + year); }
+function personalYear(month, day, year) { return reduceNumber(month + day + digitSum(year)); }
 
 function zodiacFor(month, day) {
   if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return ZODIAC[0];
@@ -59,12 +56,50 @@ function validateDate(dateString) {
 }
 
 function dayOfYear(date) {
-  const start = Date.UTC(date.getUTCFullYear(), 0, 0);
-  const current = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-  return Math.floor((current - start) / 86400000);
+  return Math.floor((Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - Date.UTC(date.getUTCFullYear(), 0, 0)) / 86400000);
 }
 
-export function buildReport(dateString, name = "", selectedYear = new Date().getUTCFullYear()) {
+function generation(year) {
+  if (year >= 2013) return "Generation Alpha";
+  if (year >= 1997) return "Generation Z";
+  if (year >= 1981) return "Millennial generation";
+  if (year >= 1965) return "Generation X";
+  if (year >= 1946) return "Baby Boomer generation";
+  return "an earlier generation cohort";
+}
+
+function chineseAnimal(year) {
+  const animals = ["Rat", "Ox", "Tiger", "Rabbit", "Dragon", "Snake", "Horse", "Goat", "Monkey", "Rooster", "Dog", "Pig"];
+  return animals[(year - 4 + 120) % 12];
+}
+
+async function fetchJson(url) {
+  try {
+    const response = await fetch(url, { headers: { "User-Agent": "ZodiaDaily/1.0" }, signal: AbortSignal.timeout(5000) });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch { return null; }
+}
+
+async function fetchDateResearch(month, day) {
+  const mm = String(month).padStart(2, "0");
+  const dd = String(day).padStart(2, "0");
+  const [events, births] = await Promise.all([
+    fetchJson(`https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/${mm}/${dd}`),
+    fetchJson(`https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/births/${mm}/${dd}`)
+  ]);
+  return {
+    events: (events?.events || []).slice(0, 4).map(x => ({ year: x.year, text: x.text })),
+    births: (births?.births || []).slice(0, 6).map(x => ({ year: x.year, text: x.text }))
+  };
+}
+
+async function fetchYearResearch(year) {
+  const page = await fetchJson(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(String(year))}`);
+  return page ? { extract: page.extract || "", url: page.content_urls?.desktop?.page || "" } : { extract: "", url: "" };
+}
+
+export async function buildReport(dateString, name = "", selectedYear = new Date().getUTCFullYear()) {
   const date = validateDate(dateString);
   const month = date.getUTCMonth() + 1;
   const day = date.getUTCDate();
@@ -74,31 +109,33 @@ export function buildReport(dateString, name = "", selectedYear = new Date().get
   const monthData = MONTH_DATA[month];
   const formattedDate = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }).format(date);
   const weekday = new Intl.DateTimeFormat("en-US", { weekday: "long", timeZone: "UTC" }).format(date);
-  const cleanName = String(name || "").trim() || "Your Personal Profile";
-  const endOfYear = Date.UTC(year, 11, 31);
+  const cleanName = String(name || "").trim() || "Your";
+  const totalDays = new Date(Date.UTC(year, 1, 29)).getUTCDate() === 29 ? 366 : 365;
+  const [dateResearch, yearResearch] = await Promise.all([fetchDateResearch(month, day), fetchYearResearch(year)]);
 
   return {
     name: cleanName, birthDate: dateString, formattedDate, weekday, year, month, day,
     zodiacSign: zodiac.name, element: zodiac.element, modality: zodiac.modality, rulingPlanet: zodiac.planet, zodiacDates: zodiac.dates,
     birthstone: monthData[0], birthFlower: monthData[1], luckyColors: monthData[2],
     lifePathNumber: lifePath(dateString), birthdayNumber: birthdayNumber(day), attitudeNumber: attitudeNumber(month, day), personalYear: personalYear(month, day, selectedYear),
-    dayOfYear: dayOfYear(date), daysRemaining: Math.floor((endOfYear - date.getTime()) / 86400000), leapYear: new Date(Date.UTC(year, 1, 29)).getUTCDate() === 29,
+    chineseZodiac: chineseAnimal(year), generation: generation(year), dayOfYear: dayOfYear(date), daysRemaining: totalDays - dayOfYear(date), leapYear: totalDays === 366,
     corePersonality: `Traditional ${zodiac.name} interpretations often emphasize ${symbolic.core}. This is reflective content, not a fixed description of a person.`,
     keyTraits: symbolic.traits, strengths: symbolic.strengths, challenges: symbolic.challenges, communicationStyle: symbolic.communication,
-    relationship: "Traditional interpretations can be used to reflect on loyalty, communication, respect and healthy boundaries. Healthy relationships depend on real behavior, consent and mutual respect.",
+    relationship: "Traditional interpretations can be used to reflect on loyalty, communication, respect and healthy boundaries. Healthy relationships depend on real behavior and mutual respect.",
     friendship: "Reflect on generosity, encouragement, listening and shared experiences. People are more complex than a birth-date category.",
     learning: "Explore learning through questions, practical examples, creative projects and opportunities to explain ideas to others.",
     workCareer: `Reflect on how themes such as ${symbolic.core} could support teamwork, responsibility and meaningful work.`,
     goals: "Choose one realistic goal, identify a small next action and review progress without treating symbolism as destiny.",
     growth: "Practice self-awareness, flexibility, patience and constructive feedback alongside your natural strengths.",
-    yearProfile: `Your birth year is ${year}. A future verified research module can add dated historical, technology, culture and entertainment references for this year without inventing personal experiences.`,
+    historicalEvents: dateResearch.events, famousBirths: dateResearch.births,
+    yearProfile: yearResearch.extract || `Your birth year is ${year}. A research snapshot can be added when reference data is available.`, yearProfileUrl: yearResearch.url,
     story: `Born on ${formattedDate}, ${cleanName}'s date sits within a particular point in calendar history. Symbols and context can inspire reflection, but choices, relationships, learning and lived experiences shape a person's story.`,
     themes: ["Confidence", "Personal growth", "Meaningful connections", "Making an impact", "Balance", "Lifelong learning"],
-    note: "Astrology, numerology, colors, birthstones and cultural symbols are presented for reflection or entertainment. They are not scientifically validated measurements or predictions."
+    note: "Astrology, numerology, colors, birthstones and cultural symbols are presented for reflection or entertainment. They are not scientifically validated measurements or predictions. Historical and birth-date facts are retrieved from Wikimedia when available."
   };
 }
 
-export function compareReports(first, second) {
+export async function compareReports(first, second) {
   return {
     first, second,
     comparison: [
