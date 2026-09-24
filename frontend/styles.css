@@ -1,51 +1,35 @@
-:root {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #18212f;
-  background: #f6f7fb;
-  line-height: 1.5;
-}
-
+:root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #18212f; background: #f6f1e6; line-height: 1.5; }
 * { box-sizing: border-box; }
 body { margin: 0; }
-
-.site-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1080px;
-  margin: auto;
-  padding: 24px 22px;
-}
-
-.brand { font-size: 24px; font-weight: 800; }
-.brand span { color: #7661e8; }
-.header-link { color: #7661e8; text-decoration: none; font-weight: 700; }
-
-main { max-width: 850px; margin: auto; padding: 30px 22px 70px; }
+.site-header { display: flex; justify-content: space-between; align-items: center; max-width: 1080px; margin: auto; padding: 24px 22px; }
+.brand { font-size: 24px; font-weight: 800; letter-spacing: .5px; }
+.brand span { color: #a7832f; }
+.header-link { color: #6b5521; text-decoration: none; font-weight: 700; }
+main { max-width: 920px; margin: auto; padding: 30px 22px 70px; }
 .hero { text-align: center; padding: 50px 0 35px; }
-.eyebrow { color: #7661e8; font-size: 12px; font-weight: 800; letter-spacing: 2px; }
+.eyebrow { color: #8b6b27; font-size: 11px; font-weight: 800; letter-spacing: 2px; }
 h1 { font-size: clamp(36px, 7vw, 68px); line-height: 1.05; margin: 15px 0; }
 h2 { margin-top: 0; }
-.hero-copy { max-width: 620px; margin: 0 auto 20px; color: #667085; font-size: 18px; }
-.price-pill { display: inline-block; padding: 8px 14px; border-radius: 30px; background: #ece8ff; color: #5d49c9; font-weight: 800; }
-
-.panel {
-  background: white;
-  border: 1px solid #e8eaf1;
-  border-radius: 22px;
-  padding: 28px;
-  margin-top: 24px;
-  box-shadow: 0 12px 40px rgba(30, 40, 70, 0.05);
-}
-
+.hero-copy { max-width: 700px; margin: 0 auto 20px; color: #667085; font-size: 18px; }
+.price-pill { display: inline-block; padding: 8px 14px; border-radius: 30px; background: #efe1ad; color: #604a12; font-weight: 800; }
+.panel { background: #fffdf7; border: 1px solid #e4d7b9; border-radius: 22px; padding: 28px; margin-top: 24px; box-shadow: 0 12px 40px rgba(30, 40, 70, 0.06); }
 .muted { color: #667085; }
 form { display: grid; gap: 10px; }
 label { font-weight: 700; margin-top: 8px; }
-input { width: 100%; padding: 13px 14px; border: 1px solid #d9dce6; border-radius: 12px; font: inherit; }
-button { border: 0; border-radius: 12px; padding: 14px 18px; background: #7661e8; color: white; font-weight: 800; cursor: pointer; margin-top: 12px; }
-button:hover { background: #5f4bd0; }
-.secondary { background: #222b3a; }
-.result { margin-top: 20px; padding: 20px; border-radius: 14px; background: #f6f7fb; }
+input { width: 100%; padding: 13px 14px; border: 1px solid #d9d0b9; border-radius: 12px; font: inherit; background: white; }
+button { border: 0; border-radius: 12px; padding: 14px 18px; background: #0b1d3a; color: white; font-weight: 800; cursor: pointer; margin-top: 12px; }
+button:hover { background: #162d50; }
+.secondary { background: #8b6b27; width: 100%; }
+.result { margin-top: 20px; padding: 22px; border-radius: 14px; background: #fbf5e8; border: 1px solid #e4d7b9; }
 .result h3 { margin-top: 0; }
 .result ul { padding-left: 20px; }
+.report-hero { text-align: center; border-bottom: 1px solid #d9cba9; padding-bottom: 16px; margin-bottom: 18px; }
+.report-hero h3 { font-size: 26px; color: #0b1d3a; margin: 6px 0; }
+.report-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.report-grid article, .result section { background: #fffdf7; border: 1px solid #dfd1ad; border-radius: 10px; padding: 14px; }
+.report-grid article h4, .result section h4 { margin: 0 0 8px; color: #0b1d3a; }
+.report-grid article p { margin: 6px 0; font-size: 14px; }
+.report-note { font-size: 12px; color: #667085; margin-top: 18px; }
+.error-message { color: #a11; font-weight: 700; }
 footer { text-align: center; color: #667085; padding: 25px; }
+@media (max-width: 700px) { .report-grid { grid-template-columns: 1fr; } .panel { padding: 20px; } }
