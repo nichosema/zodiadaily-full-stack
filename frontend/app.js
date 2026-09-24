@@ -1,6 +1,5 @@
 // Replace this with your public Codespaces backend URL.
-const API_BASE = "http://localhost:4000";
-
+const API_BASE = "https://upgraded-waddle-r4pvj55pj67gh946-4000.app.github.dev";
 const reportForm = document.querySelector("#report-form");
 const compareForm = document.querySelector("#compare-form");
 const reportResult = document.querySelector("#report-result");
