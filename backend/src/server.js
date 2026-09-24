@@ -10,21 +10,38 @@ app.use(cors({ origin: config.frontendUrl === "*" ? true : config.frontendUrl })
 
 app.get("/health", (_req, res) => res.json({ ok: true, service: "zodiadaily-backend" }));
 
+function attachEdition(report, metadata = {}) {
+  return Object.assign(report, {
+    edition: metadata.edition || "classic",
+    familyName: metadata.familyName || "",
+    familyMembers: metadata.familyMembers || null,
+    giftFrom: metadata.giftFrom || "",
+    giftMessage: metadata.giftMessage || ""
+  });
+}
+
 app.post("/api/reports/preview", express.json(), async (req, res) => {
   try {
-    const { birthDate, name, secondBirthDate, secondName, selectedYear, edition, familyName, familyMembers, giftFrom, giftMessage } = req.body || {};
+    const {
+      birthDate, name, secondBirthDate, secondName, selectedYear, edition,
+      familyName, familyMembers, familyProfiles, giftFrom, giftMessage
+    } = req.body || {};
     if (!birthDate) return res.status(400).json({ error: "birthDate is required" });
 
-    const first = await buildReport(birthDate, name, selectedYear);
-    first.edition = edition || "classic";
-    first.familyName = familyName || "";
-    first.familyMembers = familyMembers || null;
-    first.giftFrom = giftFrom || "";
-    first.giftMessage = giftMessage || "";
+    const metadata = { edition, familyName, familyMembers, giftFrom, giftMessage };
+    const first = attachEdition(await buildReport(birthDate, name, selectedYear), metadata);
+
+    if (edition === "family") {
+      const members = [first];
+      for (const member of Array.isArray(familyProfiles) ? familyProfiles.slice(0, 7) : []) {
+        if (!member?.birthDate || !member?.name) continue;
+        members.push(attachEdition(await buildReport(member.birthDate, member.name, selectedYear), metadata));
+      }
+      return res.json({ familyName: familyName || "Family keepsake", members, note: "Family profiles are symbolic and reflective, not scientific assessments." });
+    }
 
     if (secondBirthDate) {
-      const second = await buildReport(secondBirthDate, secondName, selectedYear);
-      second.edition = edition || "couples";
+      const second = attachEdition(await buildReport(secondBirthDate, secondName, selectedYear), { ...metadata, edition: edition || "couples" });
       return res.json(await compareReports(first, second));
     }
 
@@ -39,12 +56,7 @@ app.post("/api/reports/preview.pdf", express.json(), async (req, res) => {
   try {
     const { birthDate, name, selectedYear, edition, familyName, familyMembers, giftFrom, giftMessage } = req.body || {};
     if (!birthDate) return res.status(400).json({ error: "birthDate is required" });
-    const report = await buildReport(birthDate, name, selectedYear);
-    report.edition = edition || "classic";
-    report.familyName = familyName || "";
-    report.familyMembers = familyMembers || null;
-    report.giftFrom = giftFrom || "";
-    report.giftMessage = giftMessage || "";
+    const report = attachEdition(await buildReport(birthDate, name, selectedYear), { edition, familyName, familyMembers, giftFrom, giftMessage });
     const pdf = await createPdf(report);
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", 'attachment; filename="zodiadaily-personalized-report.pdf"');
