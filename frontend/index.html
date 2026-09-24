@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZodiaDaily — Personalized BirthDate Editions</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./form-design.css">
 </head>
 <body>
   <header class="site-header">
@@ -22,7 +23,7 @@
 
     <section class="panel">
       <h2>Choose your edition</h2>
-      <p class="muted">Select the experience you want before entering the report details.</p>
+      <p class="muted">Select one edition first. The form will change its instructions, colors and extra fields automatically.</p>
       <div class="edition-grid" id="edition-grid">
         <button type="button" class="edition-card selected" data-edition="classic"><span class="edition-icon">✦</span><strong>Classic Personal Discovery</strong><small>Balanced personal profile and reflection.</small></button>
         <button type="button" class="edition-card" data-edition="cosmic"><span class="edition-icon">☾</span><strong>Cosmic Edition</strong><small>Celestial themes and imaginative design.</small></button>
@@ -36,9 +37,9 @@
       <p id="edition-description" class="muted">A balanced personal report for discovery, reflection and birthday context.</p>
       <form id="report-form">
         <input id="selectedEdition" type="hidden" value="classic">
-        <label for="customerName">Your name</label>
+        <label for="customerName">Main person's name</label>
         <input id="customerName" type="text" maxlength="80" placeholder="e.g. Alex Johnson" required>
-        <label for="birthDate">Birth date</label>
+        <label for="birthDate">Main person's birth date</label>
         <input id="birthDate" type="date" required>
 
         <div id="second-person-fields" class="conditional-fields" hidden>
@@ -46,7 +47,7 @@
           <input id="coupleSecondName" type="text" maxlength="80" placeholder="e.g. Jordan Smith">
           <label for="coupleSecondBirthDate">Second person's birth date</label>
           <input id="coupleSecondBirthDate" type="date">
-          <p class="field-help">The comparison includes two individual profiles and shared symbolic reflections.</p>
+          <p class="field-help">Complete this separate second-profile section. Do not enter both people in the first name field.</p>
         </div>
 
         <div id="family-fields" class="conditional-fields" hidden>
@@ -55,7 +56,7 @@
           <label for="familyMembers">Number of family members</label>
           <select id="familyMembers"><option value="2">2 members</option><option value="3">3 members</option><option value="4" selected>4 members</option><option value="5">5 members</option><option value="6">6 members</option><option value="7">7 members</option><option value="8">8 members</option></select>
           <div id="family-profile-fields"></div>
-          <p class="field-help">The first profile is taken from the name and birth date above. Add the other family members below.</p>
+          <p class="field-help">The main person's details are above. Add the other family members only in the additional member boxes below.</p>
         </div>
 
         <div id="gift-fields" class="conditional-fields" hidden>
@@ -73,12 +74,12 @@
 
     <section id="compare" class="panel">
       <h2>Compare two birth dates</h2>
-      <p class="muted">Explore shared or different symbolic themes.</p>
+      <p class="muted">This is a separate comparison tool. Use it only when you want to compare two people.</p>
       <form id="compare-form">
-        <label for="firstName">First name</label><input id="firstName" type="text" maxlength="80" placeholder="First person" required>
-        <label for="firstDate">First birth date</label><input id="firstDate" type="date" required>
-        <label for="secondName">Second name</label><input id="secondName" type="text" maxlength="80" placeholder="Second person" required>
-        <label for="secondDate">Second birth date</label><input id="secondDate" type="date" required>
+        <label for="firstName">First person's name</label><input id="firstName" type="text" maxlength="80" placeholder="First person" required>
+        <label for="firstDate">First person's birth date</label><input id="firstDate" type="date" required>
+        <label for="secondName">Second person's name</label><input id="secondName" type="text" maxlength="80" placeholder="Second person" required>
+        <label for="secondDate">Second person's birth date</label><input id="secondDate" type="date" required>
         <button type="submit">Compare dates</button>
       </form>
       <div id="compare-result" class="result" hidden></div>
@@ -87,5 +88,6 @@
 
   <footer><p>© BirthDate / ZodiaDaily. Symbolic and entertainment content only.</p></footer>
   <script src="./app.js"></script>
+  <script src="./form-design.js"></script>
 </body>
 </html>
