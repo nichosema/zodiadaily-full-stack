@@ -7,8 +7,15 @@ import { createPdf } from "./lib/pdf.js";
 import { verifyShopifyHmac, isPaidOrder, containsProduct } from "./lib/shopify.js";
 
 const app = express();
+const paidOrders = new Map();
+
 app.use(cors({ origin: config.frontendUrl === "*" ? true : config.frontendUrl }));
-app.get("/health", (_req, res) => res.json({ ok: true, service: "zodiadaily-backend", aiConfigured: Boolean(config.ai.apiKey) }));
+app.get("/health", (_req, res) => res.json({
+  ok: true,
+  service: "zodiadaily-backend",
+  aiConfigured: Boolean(config.ai.apiKey),
+  shopifyWebhookConfigured: Boolean(config.shopify.webhookSecret)
+}));
 
 function attachEdition(report, metadata = {}) {
   return Object.assign(report, {
@@ -111,6 +118,19 @@ app.post("/api/reports/preview.pdf", express.json(), async (req, res) => {
   }
 });
 
+app.get("/api/orders/:orderId/status", (req, res) => {
+  const order = paidOrders.get(String(req.params.orderId));
+  if (!order) return res.status(404).json({ found: false, message: "Order not found yet" });
+  res.json({
+    found: true,
+    orderId: order.orderId,
+    paid: order.paid,
+    productMatched: order.productMatched,
+    email: order.email,
+    createdAt: order.createdAt
+  });
+});
+
 app.post("/webhooks/shopify/orders-create", express.raw({ type: "application/json" }), (req, res) => {
   const verified = verifyShopifyHmac(req.body, req.get("X-Shopify-Hmac-Sha256"));
   if (!verified) return res.status(401).json({ error: "Invalid webhook signature" });
@@ -122,7 +142,29 @@ app.post("/webhooks/shopify/orders-create", express.raw({ type: "application/jso
     return res.status(400).json({ error: "Invalid JSON" });
   }
 
-  res.json({ received: true, paid: isPaidOrder(order), productMatched: containsProduct(order) });
+  const paid = isPaidOrder(order);
+  const productMatched = containsProduct(order);
+  const orderId = String(order.id || order.order_number || "");
+
+  if (orderId) {
+    paidOrders.set(orderId, {
+      orderId,
+      paid,
+      productMatched,
+      email: order.email || order.contact_email || "",
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  // This endpoint records the verified payment signal only. Report delivery
+  // should be connected after checkout fields and persistent storage are added.
+  res.json({
+    received: true,
+    stored: Boolean(orderId),
+    paid,
+    productMatched,
+    readyForDelivery: paid && productMatched
+  });
 });
 
 app.listen(config.port, () => console.log(`ZodiaDaily backend running on port ${config.port}`));
