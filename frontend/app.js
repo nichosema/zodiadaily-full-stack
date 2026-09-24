@@ -1,10 +1,43 @@
 const API_BASE = "https://upgraded-waddle-r4pvj55pj67gh946-4000.app.github.dev";
 
+const EDITIONS = {
+  classic: {
+    title: "Classic Personal Discovery",
+    description: "A balanced personal report for discovery, reflection and birthday context."
+  },
+  cosmic: {
+    title: "Cosmic Edition",
+    description: "A celestial-inspired report with symbolic themes and imaginative presentation."
+  },
+  story: {
+    title: "Birthday Story Edition",
+    description: "A narrative-focused keepsake built around the meaning and context of a birthday."
+  },
+  couples: {
+    title: "Couples / Two Birth Dates",
+    description: "A two-person report with individual profiles and shared reflections."
+  },
+  family: {
+    title: "Family Edition",
+    description: "A family keepsake that will support several individual birthday profiles."
+  },
+  gift: {
+    title: "Birthday Gift Edition",
+    description: "A polished birthday keepsake with a dedication and gift message."
+  }
+};
+
 const reportForm = document.querySelector("#report-form");
 const compareForm = document.querySelector("#compare-form");
 const reportResult = document.querySelector("#report-result");
 const compareResult = document.querySelector("#compare-result");
 const downloadButton = document.querySelector("#download-pdf");
+const selectedEditionInput = document.querySelector("#selectedEdition");
+const editionDescription = document.querySelector("#edition-description");
+const secondPersonFields = document.querySelector("#second-person-fields");
+const familyFields = document.querySelector("#family-fields");
+const giftFields = document.querySelector("#gift-fields");
+let selectedEdition = "classic";
 let latestReportInput = null;
 
 function escapeHtml(value = "") {
@@ -22,11 +55,13 @@ function listHtml(items = []) {
 }
 
 function reportHtml(report) {
+  const editionTitle = EDITIONS[report.edition]?.title || EDITIONS[selectedEdition].title;
   return `
-    <article class="report-preview">
+    <article class="report-preview edition-${escapeHtml(report.edition || selectedEdition)}">
       <div class="report-cover-mini">
+        <div class="edition-label">${escapeHtml(editionTitle)}</div>
         <div class="zodiac-badge"><strong>${escapeHtml(report.zodiacSign.slice(0, 2).toUpperCase())}</strong><span>${escapeHtml(report.element)}</span></div>
-        <p class="eyebrow">PERSONAL DISCOVERY REPORT</p>
+        <p class="eyebrow">PERSONALIZED BIRTH-DATE REPORT</p>
         <h3>${escapeHtml(report.name)}</h3>
         <p>${escapeHtml(report.formattedDate)} • ${escapeHtml(report.zodiacSign)}</p>
       </div>
@@ -62,6 +97,30 @@ function reportHtml(report) {
   `;
 }
 
+function updateEditionForm() {
+  const details = EDITIONS[selectedEdition];
+  selectedEditionInput.value = selectedEdition;
+  editionDescription.textContent = details.description;
+  document.querySelectorAll(".edition-card").forEach(card => {
+    card.classList.toggle("selected", card.dataset.edition === selectedEdition);
+  });
+  secondPersonFields.hidden = selectedEdition !== "couples";
+  familyFields.hidden = selectedEdition !== "family";
+  giftFields.hidden = selectedEdition !== "gift";
+
+  const secondName = document.querySelector("#secondName");
+  const secondBirthDate = document.querySelector("#secondBirthDate");
+  secondName.required = selectedEdition === "couples";
+  secondBirthDate.required = selectedEdition === "couples";
+}
+
+document.querySelectorAll(".edition-card").forEach(card => {
+  card.addEventListener("click", () => {
+    selectedEdition = card.dataset.edition;
+    updateEditionForm();
+  });
+});
+
 async function readResponse(response) {
   const contentType = response.headers.get("content-type") || "";
   const data = contentType.includes("application/json") ? await response.json() : { error: await response.text() };
@@ -71,12 +130,28 @@ async function readResponse(response) {
 
 reportForm.addEventListener("submit", async event => {
   event.preventDefault();
-  latestReportInput = { name: document.querySelector("#customerName").value.trim(), birthDate: document.querySelector("#birthDate").value };
+  latestReportInput = {
+    name: document.querySelector("#customerName").value.trim(),
+    birthDate: document.querySelector("#birthDate").value,
+    edition: selectedEdition,
+    secondName: document.querySelector("#secondName").value.trim(),
+    secondBirthDate: document.querySelector("#secondBirthDate").value,
+    familyName: document.querySelector("#familyName").value.trim(),
+    familyMembers: Number(document.querySelector("#familyMembers").value),
+    giftFrom: document.querySelector("#giftFrom").value.trim(),
+    giftMessage: document.querySelector("#giftMessage").value.trim()
+  };
+
   reportResult.hidden = false;
-  reportResult.innerHTML = "<p>Generating your personalized report preview...</p>";
+  reportResult.innerHTML = `<p>Generating your ${escapeHtml(EDITIONS[selectedEdition].title)} preview...</p>`;
   downloadButton.hidden = true;
+
   try {
-    const response = await fetch(`${API_BASE}/api/reports/preview`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(latestReportInput) });
+    const response = await fetch(`${API_BASE}/api/reports/preview`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(latestReportInput)
+    });
     const data = await readResponse(response);
     reportResult.innerHTML = reportHtml(data);
     downloadButton.hidden = false;
@@ -90,13 +165,17 @@ downloadButton.addEventListener("click", async () => {
   downloadButton.disabled = true;
   downloadButton.textContent = "Preparing your PDF...";
   try {
-    const response = await fetch(`${API_BASE}/api/reports/preview.pdf`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(latestReportInput) });
+    const response = await fetch(`${API_BASE}/api/reports/preview.pdf`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(latestReportInput)
+    });
     if (!response.ok) throw new Error(await response.text() || `PDF request failed with status ${response.status}`);
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "birthdate-personal-discovery-report.pdf";
+    link.download = `${selectedEdition}-birthdate-report.pdf`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -111,14 +190,25 @@ downloadButton.addEventListener("click", async () => {
 
 compareForm.addEventListener("submit", async event => {
   event.preventDefault();
-  const payload = { name: document.querySelector("#firstName").value.trim(), birthDate: document.querySelector("#firstDate").value, secondName: document.querySelector("#secondName").value.trim(), secondBirthDate: document.querySelector("#secondDate").value };
+  const payload = {
+    name: document.querySelector("#firstName").value.trim(),
+    birthDate: document.querySelector("#firstDate").value,
+    secondName: document.querySelector("#secondName").value.trim(),
+    secondBirthDate: document.querySelector("#secondDate").value
+  };
   compareResult.hidden = false;
   compareResult.innerHTML = "<p>Comparing dates...</p>";
   try {
-    const response = await fetch(`${API_BASE}/api/reports/preview`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    const response = await fetch(`${API_BASE}/api/reports/preview`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
     const data = await readResponse(response);
     compareResult.innerHTML = `<h3>Comparison</h3><p><strong>${escapeHtml(data.first.name)}:</strong> ${escapeHtml(data.first.formattedDate)} — ${escapeHtml(data.first.zodiacSign)}</p><p><strong>${escapeHtml(data.second.name)}:</strong> ${escapeHtml(data.second.formattedDate)} — ${escapeHtml(data.second.zodiacSign)}</p><ul>${data.comparison.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul><small>${escapeHtml(data.note || "Reflective comparison only.")}</small>`;
   } catch (error) {
     showMessage(compareResult, `Comparison failed: ${error.message}`, true);
   }
 });
+
+updateEditionForm();
