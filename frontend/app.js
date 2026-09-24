@@ -38,50 +38,59 @@ function listHtml(items = []) {
   return `<ul>${items.map(item => `<li>${escapeHtml(typeof item === "string" ? item : `${item.year}: ${item.text}`)}</li>`).join("")}</ul>`;
 }
 
+function narrativeHtml(report) {
+  if (!report.aiNarrative) return "";
+  const paragraphs = String(report.aiNarrative).split(/\n+/).filter(Boolean).map(text => `<p>${escapeHtml(text)}</p>`).join("");
+  return `<section class="ai-narrative"><h3>Your AI-Personalized Birthday Narrative</h3>${paragraphs}</section>`;
+}
+
+function editionExtraHtml(report) {
+  const giftBlock = report.giftMessage ? `<section class="gift-message"><h3>A Birthday Message for You</h3><p>${escapeHtml(report.giftMessage)}</p><p><strong>From:</strong> ${escapeHtml(report.giftFrom || "Someone special")}</p></section>` : "";
+  const dedication = report.edition === "gift" ? `<section class="dedication-card"><h3>A Personal Dedication</h3><p>This keepsake was prepared especially for <strong>${escapeHtml(report.name)}</strong>.</p></section>` : "";
+  return `${dedication}${giftBlock}${narrativeHtml(report)}`;
+}
+
 function reportHtml(report, heading = "") {
   const editionTitle = EDITIONS[report.edition]?.title || EDITIONS[selectedEdition].title;
-  const giftBlock = report.giftMessage ? `<section class="gift-message"><h3>A message for you</h3><p>${escapeHtml(report.giftMessage)}</p><p><strong>From:</strong> ${escapeHtml(report.giftFrom || "Someone special")}</p></section>` : "";
   return `<article class="report-preview edition-${escapeHtml(report.edition || selectedEdition)}">
     ${heading ? `<h3>${escapeHtml(heading)}</h3>` : ""}
     <div class="report-cover-mini"><div class="edition-label">${escapeHtml(editionTitle)}</div>
-      <div class="zodiac-badge"><strong>${escapeHtml((report.zodiacSign || "").slice(0, 2).toUpperCase())}</strong><span>${escapeHtml(report.element)}</span></div>
+      <div class="zodiac-badge"><strong>${escapeHtml((report.zodiacSign || "").slice(0, 2).toUpperCase())}</strong><span>${escapeHtml(report.element || "")}</span></div>
       <p class="eyebrow">PERSONALIZED BIRTH-DATE REPORT</p><h3>${escapeHtml(report.name)}</h3><p>${escapeHtml(report.formattedDate)} • ${escapeHtml(report.zodiacSign)}</p>
     </div>
-    <h3>Birthday at a glance</h3><div class="report-grid">
+    ${editionExtraHtml(report)}
+    <h3>Birthday at a Glance</h3><div class="report-grid">
       <p><strong>Weekday:</strong> ${escapeHtml(report.weekday)}</p><p><strong>Element:</strong> ${escapeHtml(report.element)}</p>
       <p><strong>Ruling planet:</strong> ${escapeHtml(report.rulingPlanet)}</p><p><strong>Birthstone:</strong> ${escapeHtml(report.birthstone)}</p>
       <p><strong>Birth flower:</strong> ${escapeHtml(report.birthFlower)}</p><p><strong>Life path:</strong> ${escapeHtml(report.lifePathNumber)}</p>
       <p><strong>Chinese zodiac:</strong> ${escapeHtml(report.chineseZodiac)}</p><p><strong>Generation:</strong> ${escapeHtml(report.generation)}</p>
     </div>
-    <h3>Personality reflection</h3><p>${escapeHtml(report.corePersonality)}</p>
+    <h3>Personality Reflection</h3><p>${escapeHtml(report.corePersonality)}</p>
     <div class="report-grid"><p><strong>Key traits:</strong> ${escapeHtml(report.keyTraits)}</p><p><strong>Strengths:</strong> ${escapeHtml(report.strengths)}</p><p><strong>Challenges:</strong> ${escapeHtml(report.challenges)}</p><p><strong>Communication:</strong> ${escapeHtml(report.communicationStyle)}</p></div>
-    <h3>Life areas</h3><p><strong>Relationships:</strong> ${escapeHtml(report.relationship)}</p><p><strong>Learning:</strong> ${escapeHtml(report.learning)}</p><p><strong>Work and goals:</strong> ${escapeHtml(report.workCareer)} ${escapeHtml(report.goals)}</p>
-    <h3>Events connected to your date</h3>${listHtml(report.historicalEvents)}<h3>People born on your date</h3>${listHtml(report.famousBirths)}
-    <h3>Birth-year profile</h3><p>${escapeHtml(report.yearProfile)}</p><h3>Your personal birthday story</h3><p>${escapeHtml(report.story)}</p>
-    <h3>Reflection themes</h3><ul>${(report.themes || []).map(theme => `<li>${escapeHtml(theme)}</li>`).join("")}</ul>
-    ${giftBlock}<p class="muted disclaimer">${escapeHtml(report.note)}</p></article>`;
+    <h3>Life Areas</h3><p><strong>Relationships:</strong> ${escapeHtml(report.relationship)}</p><p><strong>Learning:</strong> ${escapeHtml(report.learning)}</p><p><strong>Work and goals:</strong> ${escapeHtml(report.workCareer)} ${escapeHtml(report.goals)}</p>
+    <h3>Events Connected to Your Date</h3>${listHtml(report.historicalEvents)}<h3>People Born on Your Date</h3>${listHtml(report.famousBirths)}
+    <h3>Birth-Year Profile</h3><p>${escapeHtml(report.yearProfile)}</p><h3>Your Personal Birthday Story</h3><p>${escapeHtml(report.story)}</p>
+    <h3>Reflection Themes</h3><ul>${(report.themes || []).map(theme => `<li>${escapeHtml(theme)}</li>`).join("")}</ul>
+    <p class="muted disclaimer">${escapeHtml(report.note)}</p></article>`;
 }
 
 function couplesHtml(data) {
-  return `<article class="report-preview edition-couples"><div class="report-cover-mini"><div class="edition-label">Couples / Two Birth Dates</div><h3>Two personal profiles</h3><p>${escapeHtml(data.first.formattedDate)} and ${escapeHtml(data.second.formattedDate)}</p></div>
-    ${reportHtml(data.first, "First profile")}${reportHtml(data.second, "Second profile")}<h3>Shared comparison</h3><ul>${(data.comparison || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul><p class="muted disclaimer">${escapeHtml(data.note || "Reflective comparison only.")}</p></article>`;
+  return `<article class="report-preview edition-couples"><div class="report-cover-mini"><div class="edition-label">Couples / Two Birth Dates</div><h3>Two Personal Profiles</h3><p>${escapeHtml(data.first.formattedDate)} and ${escapeHtml(data.second.formattedDate)}</p></div>
+    ${reportHtml(data.first, "First Profile")}${reportHtml(data.second, "Second Profile")}<section class="ai-narrative"><h3>Shared Comparison</h3><ul>${(data.comparison || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section><p class="muted disclaimer">${escapeHtml(data.note || "Reflective comparison only.")}</p></article>`;
 }
 
 function familyHtml(data) {
-  const members = (data.members || []).map((member, index) => reportHtml(member, `Family profile ${index + 1}`)).join("");
-  return `<article class="report-preview edition-family"><div class="report-cover-mini"><div class="edition-label">Family Edition</div><h3>${escapeHtml(data.familyName || "Family keepsake")}</h3><p>${escapeHtml(String((data.members || []).length))} individual profiles</p></div>${members}<p class="muted disclaimer">${escapeHtml(data.note || "Family report content is reflective and entertainment-oriented.")}</p></article>`;
+  const members = (data.members || []).map((member, index) => reportHtml(member, `Family Profile ${index + 1}`)).join("");
+  return `<article class="report-preview edition-family"><div class="report-cover-mini"><div class="edition-label">Family Edition</div><h3>${escapeHtml(data.familyName || "Family Keepsake")}</h3><p>${escapeHtml(String((data.members || []).length))} individual profiles</p></div>${members}<p class="muted disclaimer">${escapeHtml(data.note || "Family report content is reflective and entertainment-oriented.")}</p></article>`;
 }
 
 function updateFamilyFields() {
   const count = Math.max(2, Math.min(8, Number($("#familyMembers").value || 4)));
-  familyProfileFields.innerHTML = Array.from({ length: count - 1 }, (_, index) => `<div class="conditional-fields"><strong>Additional family member ${index + 2}</strong><label for="familyName${index}">Name</label><input id="familyName${index}" type="text" maxlength="80" placeholder="Family member name"><label for="familyDate${index}">Birth date</label><input id="familyDate${index}" type="date"></div>`).join("");
+  familyProfileFields.innerHTML = Array.from({ length: count - 1 }, (_, index) => `<div class="conditional-fields"><strong>Additional Family Member ${index + 2}</strong><label for="familyName${index}">Name</label><input id="familyName${index}" type="text" maxlength="80" placeholder="Family member name"><label for="familyDate${index}">Birth date</label><input id="familyDate${index}" type="date"></div>`).join("");
 }
 
 function readFamilyProfiles() {
-  return Array.from(familyProfileFields.querySelectorAll(".conditional-fields")).map((block, index) => ({
-    name: $(`#familyName${index}`).value.trim(),
-    birthDate: $(`#familyDate${index}`).value
-  })).filter(member => member.name && member.birthDate);
+  return Array.from(familyProfileFields.querySelectorAll(".conditional-fields")).map((block, index) => ({ name: $(`#familyName${index}`).value.trim(), birthDate: $(`#familyDate${index}`).value })).filter(member => member.name && member.birthDate);
 }
 
 function updateEditionForm() {
@@ -108,12 +117,7 @@ async function readResponse(response) {
 
 reportForm.addEventListener("submit", async event => {
   event.preventDefault();
-  latestReportInput = {
-    name: $("#customerName").value.trim(), birthDate: $("#birthDate").value, edition: selectedEdition,
-    secondName: $("#coupleSecondName").value.trim(), secondBirthDate: $("#coupleSecondBirthDate").value,
-    familyName: $("#familyName").value.trim(), familyMembers: Number($("#familyMembers").value), familyProfiles: readFamilyProfiles(),
-    giftFrom: $("#giftFrom").value.trim(), giftMessage: $("#giftMessage").value.trim()
-  };
+  latestReportInput = { name: $("#customerName").value.trim(), birthDate: $("#birthDate").value, edition: selectedEdition, secondName: $("#coupleSecondName").value.trim(), secondBirthDate: $("#coupleSecondBirthDate").value, familyName: $("#familyName").value.trim(), familyMembers: Number($("#familyMembers").value), familyProfiles: readFamilyProfiles(), giftFrom: $("#giftFrom").value.trim(), giftMessage: $("#giftMessage").value.trim() };
   reportResult.hidden = false;
   reportResult.innerHTML = `<p>Generating your ${escapeHtml(EDITIONS[selectedEdition].title)} preview...</p>`;
   downloadButton.hidden = true;
@@ -131,8 +135,7 @@ downloadButton.addEventListener("click", async () => {
   try {
     const response = await fetch(`${API_BASE}/api/reports/preview.pdf`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(latestReportInput) });
     if (!response.ok) throw new Error(await response.text() || `PDF request failed with status ${response.status}`);
-    const blob = await response.blob(); const url = URL.createObjectURL(blob); const link = document.createElement("a");
-    link.href = url; link.download = `${selectedEdition}-birthdate-report.pdf`; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+    const blob = await response.blob(); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `${selectedEdition}-birthdate-report.pdf`; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
   } catch (error) { showMessage(reportResult, `PDF generation failed: ${error.message}`, true); }
   finally { downloadButton.disabled = false; downloadButton.textContent = "Download full PDF preview"; }
 });
