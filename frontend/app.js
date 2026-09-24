@@ -25,12 +25,17 @@ let selectedEdition = "classic";
 let latestReportInput = null;
 
 const zodiacSymbols = { Aries: "♈", Taurus: "♉", Gemini: "♊", Cancer: "♋", Leo: "♌", Virgo: "♍", Libra: "♎", Scorpio: "♏", Sagittarius: "♐", Capricorn: "♑", Aquarius: "♒", Pisces: "♓" };
+const zodiacMotifs = { Aries: "RAM", Taurus: "BULL", Gemini: "TWINS", Cancer: "CRAB", Leo: "LION", Virgo: "MAIDEN", Libra: "SCALES", Scorpio: "SCORPION", Sagittarius: "ARCHER", Capricorn: "SEA-GOAT", Aquarius: "WATER-BEARER", Pisces: "FISH" };
+const zodiacElements = { Aries: "FIRE", Taurus: "EARTH", Gemini: "AIR", Cancer: "WATER", Leo: "FIRE", Virgo: "EARTH", Libra: "AIR", Scorpio: "WATER", Sagittarius: "FIRE", Capricorn: "EARTH", Aquarius: "AIR", Pisces: "WATER" };
 const safe = value => { const text = String(value ?? "").trim(); return text ? text : "Not available"; };
 function escapeHtml(value = "") { return String(value).replace(/[&<>\"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '\"': "&quot;", "'": "&#39;" }[c])); }
 function zodiacImage(report) {
-  const symbol = zodiacSymbols[report.zodiacSign] || "✦";
-  const label = escapeHtml(report.zodiacSign || "Zodiac");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220"><defs><radialGradient id="g"><stop stop-color="#fff8dc"/><stop offset="1" stop-color="#ead19a"/></radialGradient></defs><circle cx="110" cy="110" r="101" fill="#10233f"/><circle cx="110" cy="110" r="86" fill="url(#g)" stroke="#c9a75a" stroke-width="3"/><circle cx="110" cy="110" r="72" fill="none" stroke="#10233f" stroke-dasharray="3 8" stroke-width="2"/><text x="110" y="119" text-anchor="middle" font-size="66" fill="#10233f">${symbol}</text><text x="110" y="153" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#10233f">${label}</text></svg>`;
+  const sign = report.zodiacSign || "Zodiac";
+  const symbol = zodiacSymbols[sign] || "✦";
+  const motif = zodiacMotifs[sign] || "CELESTIAL";
+  const element = zodiacElements[sign] || "STARS";
+  const label = escapeHtml(sign);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260" viewBox="0 0 260 260"><defs><radialGradient id="g"><stop stop-color="#fff8dc"/><stop offset="1" stop-color="#e5c987"/></radialGradient></defs><rect width="260" height="260" rx="34" fill="#10233f"/><circle cx="130" cy="130" r="108" fill="url(#g)" stroke="#c9a75a" stroke-width="4"/><circle cx="130" cy="130" r="91" fill="none" stroke="#10233f" stroke-dasharray="3 10" stroke-width="2"/><path d="M130 25 L136 39 L151 40 L140 50 L143 65 L130 57 L117 65 L120 50 L109 40 L124 39 Z" fill="#10233f" opacity=".8"/><text x="130" y="126" text-anchor="middle" font-size="62" fill="#10233f">${symbol}</text><text x="130" y="157" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" letter-spacing="1" fill="#10233f">${label.toUpperCase()}</text><text x="130" y="179" text-anchor="middle" font-family="Arial" font-size="9" letter-spacing="1.4" fill="#10233f">${motif}</text><text x="130" y="198" text-anchor="middle" font-family="Arial" font-size="8" letter-spacing="2" fill="#10233f">${element}</text><circle cx="38" cy="50" r="3" fill="#fff8dc"/><circle cx="220" cy="72" r="3" fill="#fff8dc"/><circle cx="45" cy="205" r="2" fill="#fff8dc"/><circle cx="215" cy="214" r="2" fill="#fff8dc"/></svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 function showMessage(element, message, isError = false) { element.hidden = false; element.innerHTML = `<p${isError ? ' class="error-message"' : ""}>${escapeHtml(message)}</p>`; }
