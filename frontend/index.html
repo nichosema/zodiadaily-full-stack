@@ -24,67 +24,35 @@
       <h2>Choose your edition</h2>
       <p class="muted">Select the experience you want before entering the report details.</p>
       <div class="edition-grid" id="edition-grid">
-        <button type="button" class="edition-card selected" data-edition="classic">
-          <span class="edition-icon">✦</span>
-          <strong>Classic Personal Discovery</strong>
-          <small>Balanced personal profile and reflection.</small>
-        </button>
-        <button type="button" class="edition-card" data-edition="cosmic">
-          <span class="edition-icon">☾</span>
-          <strong>Cosmic Edition</strong>
-          <small>Celestial themes and imaginative design.</small>
-        </button>
-        <button type="button" class="edition-card" data-edition="story">
-          <span class="edition-icon">▤</span>
-          <strong>Birthday Story Edition</strong>
-          <small>A narrative built around the birthday.</small>
-        </button>
-        <button type="button" class="edition-card" data-edition="couples">
-          <span class="edition-icon">♡</span>
-          <strong>Couples / Two Birth Dates</strong>
-          <small>Two profiles and shared reflections.</small>
-        </button>
-        <button type="button" class="edition-card" data-edition="family">
-          <span class="edition-icon">♧</span>
-          <strong>Family Edition</strong>
-          <small>A keepsake for several family members.</small>
-        </button>
-        <button type="button" class="edition-card" data-edition="gift">
-          <span class="edition-icon">🎁</span>
-          <strong>Birthday Gift Edition</strong>
-          <small>A polished report with a dedication.</small>
-        </button>
+        <button type="button" class="edition-card selected" data-edition="classic"><span class="edition-icon">✦</span><strong>Classic Personal Discovery</strong><small>Balanced personal profile and reflection.</small></button>
+        <button type="button" class="edition-card" data-edition="cosmic"><span class="edition-icon">☾</span><strong>Cosmic Edition</strong><small>Celestial themes and imaginative design.</small></button>
+        <button type="button" class="edition-card" data-edition="story"><span class="edition-icon">▤</span><strong>Birthday Story Edition</strong><small>A narrative built around the birthday.</small></button>
+        <button type="button" class="edition-card" data-edition="couples"><span class="edition-icon">♡</span><strong>Couples / Two Birth Dates</strong><small>Two profiles and shared reflections.</small></button>
+        <button type="button" class="edition-card" data-edition="family"><span class="edition-icon">♧</span><strong>Family Edition</strong><small>A keepsake for several family members.</small></button>
+        <button type="button" class="edition-card" data-edition="gift"><span class="edition-icon">🎁</span><strong>Birthday Gift Edition</strong><small>A polished report with a dedication.</small></button>
       </div>
 
       <h2 class="form-heading">Create your report</h2>
       <p id="edition-description" class="muted">A balanced personal report for discovery, reflection and birthday context.</p>
       <form id="report-form">
         <input id="selectedEdition" type="hidden" value="classic">
-
         <label for="customerName">Your name</label>
         <input id="customerName" type="text" maxlength="80" placeholder="e.g. Alex Johnson" required>
         <label for="birthDate">Birth date</label>
         <input id="birthDate" type="date" required>
 
         <div id="second-person-fields" class="conditional-fields" hidden>
-          <label for="secondName">Second person's name</label>
-          <input id="secondName" type="text" maxlength="80" placeholder="e.g. Jordan Smith">
-          <label for="secondBirthDate">Second person's birth date</label>
-          <input id="secondBirthDate" type="date">
+          <label for="coupleSecondName">Second person's name</label>
+          <input id="coupleSecondName" type="text" maxlength="80" placeholder="e.g. Jordan Smith">
+          <label for="coupleSecondBirthDate">Second person's birth date</label>
+          <input id="coupleSecondBirthDate" type="date">
         </div>
 
         <div id="family-fields" class="conditional-fields" hidden>
           <label for="familyName">Family name or title</label>
           <input id="familyName" type="text" maxlength="100" placeholder="e.g. The Johnson Family">
           <label for="familyMembers">Number of family members</label>
-          <select id="familyMembers">
-            <option value="3">3 members</option>
-            <option value="4" selected>4 members</option>
-            <option value="5">5 members</option>
-            <option value="6">6 members</option>
-            <option value="7">7 members</option>
-            <option value="8">8 members</option>
-          </select>
+          <select id="familyMembers"><option value="3">3 members</option><option value="4" selected>4 members</option><option value="5">5 members</option><option value="6">6 members</option><option value="7">7 members</option><option value="8">8 members</option></select>
           <p class="field-help">The first profile is entered above. Additional family profiles will be added in the next development stage.</p>
         </div>
 
@@ -105,14 +73,10 @@
       <h2>Compare two birth dates</h2>
       <p class="muted">Explore shared or different symbolic themes.</p>
       <form id="compare-form">
-        <label for="firstName">First name</label>
-        <input id="firstName" type="text" maxlength="80" placeholder="First person" required>
-        <label for="firstDate">First birth date</label>
-        <input id="firstDate" type="date" required>
-        <label for="secondName">Second name</label>
-        <input id="secondName" type="text" maxlength="80" placeholder="Second person" required>
-        <label for="secondDate">Second birth date</label>
-        <input id="secondDate" type="date" required>
+        <label for="firstName">First name</label><input id="firstName" type="text" maxlength="80" placeholder="First person" required>
+        <label for="firstDate">First birth date</label><input id="firstDate" type="date" required>
+        <label for="secondName">Second name</label><input id="secondName" type="text" maxlength="80" placeholder="Second person" required>
+        <label for="secondDate">Second birth date</label><input id="secondDate" type="date" required>
         <button type="submit">Compare dates</button>
       </form>
       <div id="compare-result" class="result" hidden></div>
