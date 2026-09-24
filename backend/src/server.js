@@ -12,11 +12,23 @@ app.get("/health", (_req, res) => res.json({ ok: true, service: "zodiadaily-back
 
 app.post("/api/reports/preview", express.json(), async (req, res) => {
   try {
-    const { birthDate, name, secondBirthDate, secondName, selectedYear } = req.body || {};
+    const { birthDate, name, secondBirthDate, secondName, selectedYear, edition, familyName, familyMembers, giftFrom, giftMessage } = req.body || {};
     if (!birthDate) return res.status(400).json({ error: "birthDate is required" });
+
     const first = await buildReport(birthDate, name, selectedYear);
-    const result = secondBirthDate ? await compareReports(first, await buildReport(secondBirthDate, secondName, selectedYear)) : first;
-    res.json(result);
+    first.edition = edition || "classic";
+    first.familyName = familyName || "";
+    first.familyMembers = familyMembers || null;
+    first.giftFrom = giftFrom || "";
+    first.giftMessage = giftMessage || "";
+
+    if (secondBirthDate) {
+      const second = await buildReport(secondBirthDate, secondName, selectedYear);
+      second.edition = edition || "couples";
+      return res.json(await compareReports(first, second));
+    }
+
+    res.json(first);
   } catch (error) {
     console.error("Preview error:", error);
     res.status(400).json({ error: error.message });
@@ -25,12 +37,17 @@ app.post("/api/reports/preview", express.json(), async (req, res) => {
 
 app.post("/api/reports/preview.pdf", express.json(), async (req, res) => {
   try {
-    const { birthDate, name, selectedYear } = req.body || {};
+    const { birthDate, name, selectedYear, edition, familyName, familyMembers, giftFrom, giftMessage } = req.body || {};
     if (!birthDate) return res.status(400).json({ error: "birthDate is required" });
     const report = await buildReport(birthDate, name, selectedYear);
+    report.edition = edition || "classic";
+    report.familyName = familyName || "";
+    report.familyMembers = familyMembers || null;
+    report.giftFrom = giftFrom || "";
+    report.giftMessage = giftMessage || "";
     const pdf = await createPdf(report);
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", 'attachment; filename="zodiadaily-personal-discovery-report.pdf"');
+    res.setHeader("Content-Disposition", 'attachment; filename="zodiadaily-personalized-report.pdf"');
     res.send(pdf);
   } catch (error) {
     console.error("PDF error:", error);
