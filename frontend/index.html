@@ -3,44 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZodiaDaily — Personalized BirthDate Reports</title>
+  <title>ZodiaDaily — BirthDate Personal Discovery Report</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <header class="site-header">
-    <div class="brand">Zodia<span>Daily</span></div>
+    <div class="brand">Birth<span>Date</span></div>
     <a class="header-link" href="#compare">Compare dates</a>
   </header>
 
   <main>
     <section class="hero">
-      <p class="eyebrow">YOUR PERSONAL BIRTHDATE EXPERIENCE</p>
-      <h1>Discover the story behind your birth date.</h1>
-      <p class="hero-copy">
-        Generate a beautifully organized birth-date report with calendar details,
-        symbolic zodiac themes, numerology, and reflective insights.
-      </p>
+      <p class="eyebrow">COSMIC • CULTURAL • PERSONAL</p>
+      <h1>Create your personal birth-date discovery report.</h1>
+      <p class="hero-copy">Generate a beautifully organized, twelve-page keepsake with calendar details, symbolic zodiac themes, numerology, life areas, birth-year context and reflection prompts.</p>
       <div class="price-pill">$6 personalized report</div>
     </section>
 
     <section class="panel">
       <h2>Create your report</h2>
-      <p class="muted">Enter a date to preview your report.</p>
+      <p class="muted">Enter a name and birth date to generate your personalized preview.</p>
       <form id="report-form">
+        <label for="customerName">Your name</label>
+        <input id="customerName" type="text" maxlength="80" placeholder="e.g. Alex Johnson" required>
         <label for="birthDate">Birth date</label>
         <input id="birthDate" type="date" required>
-        <button type="submit">Generate preview</button>
+        <button type="submit">Generate personal preview</button>
       </form>
       <div id="report-result" class="result" hidden></div>
-      <button id="download-pdf" class="secondary" hidden>Download PDF preview</button>
+      <button id="download-pdf" class="secondary" hidden>Download 12-page PDF preview</button>
     </section>
 
     <section id="compare" class="panel">
       <h2>Compare two birth dates</h2>
       <p class="muted">Explore shared or different symbolic themes.</p>
       <form id="compare-form">
+        <label for="firstName">First name</label>
+        <input id="firstName" type="text" maxlength="80" placeholder="First person" required>
         <label for="firstDate">First birth date</label>
         <input id="firstDate" type="date" required>
+        <label for="secondName">Second name</label>
+        <input id="secondName" type="text" maxlength="80" placeholder="Second person" required>
         <label for="secondDate">Second birth date</label>
         <input id="secondDate" type="date" required>
         <button type="submit">Compare dates</button>
@@ -49,10 +52,7 @@
     </section>
   </main>
 
-  <footer>
-    <p>© ZodiaDaily. Symbolic and entertainment content only.</p>
-  </footer>
-
+  <footer><p>© BirthDate / ZodiaDaily. Symbolic and entertainment content only.</p></footer>
   <script src="./app.js"></script>
 </body>
 </html>
