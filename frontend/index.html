@@ -46,14 +46,16 @@
           <input id="coupleSecondName" type="text" maxlength="80" placeholder="e.g. Jordan Smith">
           <label for="coupleSecondBirthDate">Second person's birth date</label>
           <input id="coupleSecondBirthDate" type="date">
+          <p class="field-help">The comparison includes two individual profiles and shared symbolic reflections.</p>
         </div>
 
         <div id="family-fields" class="conditional-fields" hidden>
           <label for="familyName">Family name or title</label>
           <input id="familyName" type="text" maxlength="100" placeholder="e.g. The Johnson Family">
           <label for="familyMembers">Number of family members</label>
-          <select id="familyMembers"><option value="3">3 members</option><option value="4" selected>4 members</option><option value="5">5 members</option><option value="6">6 members</option><option value="7">7 members</option><option value="8">8 members</option></select>
-          <p class="field-help">The first profile is entered above. Additional family profiles will be added in the next development stage.</p>
+          <select id="familyMembers"><option value="2">2 members</option><option value="3">3 members</option><option value="4" selected>4 members</option><option value="5">5 members</option><option value="6">6 members</option><option value="7">7 members</option><option value="8">8 members</option></select>
+          <div id="family-profile-fields"></div>
+          <p class="field-help">The first profile is taken from the name and birth date above. Add the other family members below.</p>
         </div>
 
         <div id="gift-fields" class="conditional-fields" hidden>
