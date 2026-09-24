@@ -27,41 +27,38 @@ function attachEdition(report, metadata = {}) {
   });
 }
 
-app.post("/api/reports/preview", express.json(), async (req, res) => {
-  try {
-    const {
-      birthDate,
-      name,
-      secondBirthDate,
-      secondName,
-      selectedYear,
+async function makeReport(payload = {}) {
+  const { birthDate, name, selectedYear, edition, familyName, familyMembers, giftFrom, giftMessage } = payload;
+  if (!birthDate) throw new Error("birthDate is required");
+
+  return addAiNarrative(
+    attachEdition(await buildReport(birthDate, name, selectedYear), {
       edition,
       familyName,
       familyMembers,
-      familyProfiles,
       giftFrom,
       giftMessage
+    }),
+    { familyName, familyMembers }
+  );
+}
+
+app.post("/api/reports/preview", express.json(), async (req, res) => {
+  try {
+    const {
+      birthDate, name, secondBirthDate, secondName, selectedYear, edition,
+      familyName, familyMembers, familyProfiles, giftFrom, giftMessage
     } = req.body || {};
 
     if (!birthDate) return res.status(400).json({ error: "birthDate is required" });
-
     const metadata = { edition, familyName, familyMembers, giftFrom, giftMessage };
 
     if (edition === "family") {
-      const rawMembers = [
-        attachEdition(await buildReport(birthDate, name, selectedYear), metadata)
-      ];
-
+      const rawMembers = [attachEdition(await buildReport(birthDate, name, selectedYear), metadata)];
       for (const member of Array.isArray(familyProfiles) ? familyProfiles.slice(0, 7) : []) {
         if (!member?.birthDate || !member?.name) continue;
-        rawMembers.push(
-          attachEdition(
-            await buildReport(member.birthDate, member.name, selectedYear),
-            metadata
-          )
-        );
+        rawMembers.push(attachEdition(await buildReport(member.birthDate, member.name, selectedYear), metadata));
       }
-
       const members = await addAiNarratives(rawMembers, { familyName, familyMembers });
       return res.json({
         familyName: familyName || "Family keepsake",
@@ -77,10 +74,10 @@ app.post("/api/reports/preview", express.json(), async (req, res) => {
 
     if (secondBirthDate) {
       const second = await addAiNarrative(
-        attachEdition(
-          await buildReport(secondBirthDate, secondName, selectedYear),
-          { ...metadata, edition: edition || "couples" }
-        ),
+        attachEdition(await buildReport(secondBirthDate, secondName, selectedYear), {
+          ...metadata,
+          edition: edition || "couples"
+        }),
         { firstName: name, secondName }
       );
       return res.json(await compareReports(first, second));
@@ -93,27 +90,47 @@ app.post("/api/reports/preview", express.json(), async (req, res) => {
   }
 });
 
+async function sendPdf(res, report, filename) {
+  const pdf = await createPdf(report);
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.send(pdf);
+}
+
+// Testing/preview endpoint. Do not use this endpoint as paid delivery.
 app.post("/api/reports/preview.pdf", express.json(), async (req, res) => {
   try {
-    const { birthDate, name, selectedYear, edition, familyName, familyMembers, giftFrom, giftMessage } = req.body || {};
-    if (!birthDate) return res.status(400).json({ error: "birthDate is required" });
-
-    const report = await addAiNarrative(
-      attachEdition(await buildReport(birthDate, name, selectedYear), {
-        edition,
-        familyName,
-        familyMembers,
-        giftFrom,
-        giftMessage
-      })
-    );
-
-    const pdf = await createPdf(report);
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", 'attachment; filename="zodiadaily-personalized-report.pdf"');
-    res.send(pdf);
+    const report = await makeReport(req.body || {});
+    await sendPdf(res, report, "zodiadaily-preview-report.pdf");
   } catch (error) {
     console.error("PDF error:", error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Paid delivery endpoint. The Shopify webhook must first record a paid order
+// containing the configured ZodiaDaily product or variant.
+app.post("/api/orders/:orderId/report.pdf", express.json(), async (req, res) => {
+  try {
+    const orderId = String(req.params.orderId || "");
+    const order = paidOrders.get(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        error: "Order has not been received by the payment webhook yet."
+      });
+    }
+
+    if (!order.paid || !order.productMatched) {
+      return res.status(402).json({
+        error: "This order is not verified as a paid ZodiaDaily order."
+      });
+    }
+
+    const report = await makeReport(req.body || {});
+    await sendPdf(res, report, `zodiadaily-order-${orderId}.pdf`);
+  } catch (error) {
+    console.error("Paid PDF error:", error);
     res.status(400).json({ error: error.message });
   }
 });
@@ -126,6 +143,7 @@ app.get("/api/orders/:orderId/status", (req, res) => {
     orderId: order.orderId,
     paid: order.paid,
     productMatched: order.productMatched,
+    readyForDelivery: order.paid && order.productMatched,
     email: order.email,
     createdAt: order.createdAt
   });
@@ -156,8 +174,6 @@ app.post("/webhooks/shopify/orders-create", express.raw({ type: "application/jso
     });
   }
 
-  // This endpoint records the verified payment signal only. Report delivery
-  // should be connected after checkout fields and persistent storage are added.
   res.json({
     received: true,
     stored: Boolean(orderId),
