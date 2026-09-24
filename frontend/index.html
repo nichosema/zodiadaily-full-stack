@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZodiaDaily — BirthDate Personal Discovery Report</title>
+  <title>ZodiaDaily — Personalized BirthDate Editions</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -14,21 +14,88 @@
 
   <main>
     <section class="hero">
-      <p class="eyebrow">COSMIC • CULTURAL • PERSONAL</p>
-      <h1>Create your personal birth-date discovery report.</h1>
-      <p class="hero-copy">Generate a beautifully organized keepsake with a zodiac cover badge, calendar details, symbolic themes, numerology, life areas, birthday research and personal reflection prompts.</p>
-      <div class="price-pill">$6 personalized report</div>
+      <p class="eyebrow">PERSONALIZED • CREATIVE • MADE FOR YOU</p>
+      <h1>Choose a birth-date report made for your story.</h1>
+      <p class="hero-copy">Explore different report editions with their own purpose, tone and design. Start with a personal discovery report, a cosmic keepsake, a birthday story or a report for people you love.</p>
+      <div class="price-pill">Editions from $6</div>
     </section>
 
     <section class="panel">
-      <h2>Create your report</h2>
-      <p class="muted">Enter a name and birth date to generate your personalized preview.</p>
+      <h2>Choose your edition</h2>
+      <p class="muted">Select the experience you want before entering the report details.</p>
+      <div class="edition-grid" id="edition-grid">
+        <button type="button" class="edition-card selected" data-edition="classic">
+          <span class="edition-icon">✦</span>
+          <strong>Classic Personal Discovery</strong>
+          <small>Balanced personal profile and reflection.</small>
+        </button>
+        <button type="button" class="edition-card" data-edition="cosmic">
+          <span class="edition-icon">☾</span>
+          <strong>Cosmic Edition</strong>
+          <small>Celestial themes and imaginative design.</small>
+        </button>
+        <button type="button" class="edition-card" data-edition="story">
+          <span class="edition-icon">▤</span>
+          <strong>Birthday Story Edition</strong>
+          <small>A narrative built around the birthday.</small>
+        </button>
+        <button type="button" class="edition-card" data-edition="couples">
+          <span class="edition-icon">♡</span>
+          <strong>Couples / Two Birth Dates</strong>
+          <small>Two profiles and shared reflections.</small>
+        </button>
+        <button type="button" class="edition-card" data-edition="family">
+          <span class="edition-icon">♧</span>
+          <strong>Family Edition</strong>
+          <small>A keepsake for several family members.</small>
+        </button>
+        <button type="button" class="edition-card" data-edition="gift">
+          <span class="edition-icon">🎁</span>
+          <strong>Birthday Gift Edition</strong>
+          <small>A polished report with a dedication.</small>
+        </button>
+      </div>
+
+      <h2 class="form-heading">Create your report</h2>
+      <p id="edition-description" class="muted">A balanced personal report for discovery, reflection and birthday context.</p>
       <form id="report-form">
+        <input id="selectedEdition" type="hidden" value="classic">
+
         <label for="customerName">Your name</label>
         <input id="customerName" type="text" maxlength="80" placeholder="e.g. Alex Johnson" required>
         <label for="birthDate">Birth date</label>
         <input id="birthDate" type="date" required>
-        <button type="submit">Generate personal preview</button>
+
+        <div id="second-person-fields" class="conditional-fields" hidden>
+          <label for="secondName">Second person's name</label>
+          <input id="secondName" type="text" maxlength="80" placeholder="e.g. Jordan Smith">
+          <label for="secondBirthDate">Second person's birth date</label>
+          <input id="secondBirthDate" type="date">
+        </div>
+
+        <div id="family-fields" class="conditional-fields" hidden>
+          <label for="familyName">Family name or title</label>
+          <input id="familyName" type="text" maxlength="100" placeholder="e.g. The Johnson Family">
+          <label for="familyMembers">Number of family members</label>
+          <select id="familyMembers">
+            <option value="3">3 members</option>
+            <option value="4" selected>4 members</option>
+            <option value="5">5 members</option>
+            <option value="6">6 members</option>
+            <option value="7">7 members</option>
+            <option value="8">8 members</option>
+          </select>
+          <p class="field-help">The first profile is entered above. Additional family profiles will be added in the next development stage.</p>
+        </div>
+
+        <div id="gift-fields" class="conditional-fields" hidden>
+          <label for="giftFrom">Gift from</label>
+          <input id="giftFrom" type="text" maxlength="100" placeholder="Your name">
+          <label for="giftMessage">Gift message</label>
+          <textarea id="giftMessage" rows="3" maxlength="500" placeholder="Write a short personal message"></textarea>
+        </div>
+
+        <button type="submit">Generate selected edition</button>
       </form>
       <div id="report-result" class="result" hidden></div>
       <button id="download-pdf" class="secondary" hidden>Download full PDF preview</button>
