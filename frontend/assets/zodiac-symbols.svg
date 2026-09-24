@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <title>ZodiaDaily zodiac symbol collection</title>
+  <desc>Decorative zodiac symbols arranged in a twelve-sign gallery.</desc>
+  <rect width="1200" height="800" rx="36" fill="#10233f"/>
+  <g fill="#fff8dc" stroke="#c9a75a" stroke-width="2" font-family="Georgia, serif" text-anchor="middle">
+    <g transform="translate(200 145)"><circle r="105" fill="#1b3153"/><text y="15" font-size="76" stroke="none">♈</text><text y="62" font-size="22" stroke="none">ARIES</text></g>
+    <g transform="translate(600 145)"><circle r="105" fill="#1b3153"/><text y="15" font-size="76" stroke="none">♉</text><text y="62" font-size="22" stroke="none">TAURUS</text></g>
+    <g transform="translate(1000 145)"><circle r="105" fill="#1b3153"/><text y="15" font-size="76" stroke="none">♊</text><text y="62" font-size="22" stroke="none">GEMINI</text></g>
+    <g transform="translate(200 400)"><circle r="105" fill="#1b3153"/><text y="15" font-size="76" stroke="none">♋</text><text y="62" font-size="22" stroke="none">CANCER</text></g>
+    <g transform="translate(600 400)"><circle r="105" fill="#1b3153"/><text y="15" font-size="76" stroke="none">♌</text><text y="62" font-size="22" stroke="none">LEO</text></g>
+    <g transform="translate(1000 400)"><circle r="105" fill="#1b3153"/><text y="15" font-size="76" stroke="none">♍</text><text y="62" font-size="22" stroke="none">VIRGO</text></g>
+    <g transform="translate(200 655)"><circle r="105" fill="#1b3153"/><text y="15" font-size="76" stroke="none">♎</text><text y="62" font-size="22" stroke="none">LIBRA</text></g>
+    <g transform="translate(600 655)"><circle r="105" fill="#1b3153"/><text y="15" font-size="76" stroke="none">♏</text><text y="62" font-size="22" stroke="none">SCORPIO</text></g>
+    <g transform="translate(1000 655)"><circle r="105" fill="#1b3153"/><text y="15" font-size="76" stroke="none">♐</text><text y="62" font-size="22" stroke="none">SAGITTARIUS</text></g>
+  </g>
+  <g fill="#fff8dc" font-family="Georgia, serif" text-anchor="middle">
+    <text x="600" y="40" font-size="24" letter-spacing="5">ZODIADAILY • SYMBOL GALLERY</text>
+  </g>
+</svg>
