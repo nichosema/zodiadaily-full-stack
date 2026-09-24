@@ -1,0 +1,11 @@
+{
+  "name": "zodiadaily-full-stack",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["backend"],
+  "scripts": {
+    "install:backend": "npm --prefix backend install",
+    "start": "npm --prefix backend start",
+    "dev": "npm --prefix backend run dev"
+  }
+}
