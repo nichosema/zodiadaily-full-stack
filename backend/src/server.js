@@ -6,21 +6,19 @@ import { createPdf } from "./lib/pdf.js";
 import { verifyShopifyHmac, isPaidOrder, containsProduct } from "./lib/shopify.js";
 
 const app = express();
-
 app.use(cors({ origin: config.frontendUrl === "*" ? true : config.frontendUrl }));
 
-app.get("/health", (_req, res) => {
-  res.json({ ok: true, service: "zodiadaily-backend" });
-});
+app.get("/health", (_req, res) => res.json({ ok: true, service: "zodiadaily-backend" }));
 
-app.post("/api/reports/preview", express.json(), (req, res) => {
+app.post("/api/reports/preview", express.json(), async (req, res) => {
   try {
     const { birthDate, name, secondBirthDate, secondName, selectedYear } = req.body || {};
     if (!birthDate) return res.status(400).json({ error: "birthDate is required" });
-    const first = buildReport(birthDate, name, selectedYear);
-    const result = secondBirthDate ? compareReports(first, buildReport(secondBirthDate, secondName, selectedYear)) : first;
+    const first = await buildReport(birthDate, name, selectedYear);
+    const result = secondBirthDate ? await compareReports(first, await buildReport(secondBirthDate, secondName, selectedYear)) : first;
     res.json(result);
   } catch (error) {
+    console.error("Preview error:", error);
     res.status(400).json({ error: error.message });
   }
 });
@@ -29,12 +27,13 @@ app.post("/api/reports/preview.pdf", express.json(), async (req, res) => {
   try {
     const { birthDate, name, selectedYear } = req.body || {};
     if (!birthDate) return res.status(400).json({ error: "birthDate is required" });
-    const report = buildReport(birthDate, name, selectedYear);
+    const report = await buildReport(birthDate, name, selectedYear);
     const pdf = await createPdf(report);
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", 'attachment; filename="zodiadaily-personal-discovery-report.pdf"');
     res.send(pdf);
   } catch (error) {
+    console.error("PDF error:", error);
     res.status(400).json({ error: error.message });
   }
 });
