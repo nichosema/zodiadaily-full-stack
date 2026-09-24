@@ -5,7 +5,7 @@ const EDITIONS = {
   cosmic: { title: "Cosmic Edition", description: "A celestial-inspired report with symbolic themes and imaginative presentation." },
   story: { title: "Birthday Story Edition", description: "A narrative-focused keepsake built around the meaning and context of a birthday." },
   couples: { title: "Couples / Two Birth Dates", description: "A two-person report with individual profiles and shared reflections." },
-  family: { title: "Family Edition", description: "A family keepsake that will support several individual birthday profiles." },
+  family: { title: "Family Edition", description: "A family keepsake containing several individual birthday profiles." },
   gift: { title: "Birthday Gift Edition", description: "A polished birthday keepsake with a dedication and gift message." }
 };
 
@@ -19,6 +19,7 @@ const selectedEditionInput = $("#selectedEdition");
 const editionDescription = $("#edition-description");
 const secondPersonFields = $("#second-person-fields");
 const familyFields = $("#family-fields");
+const familyProfileFields = $("#family-profile-fields");
 const giftFields = $("#gift-fields");
 let selectedEdition = "classic";
 let latestReportInput = null;
@@ -37,11 +38,13 @@ function listHtml(items = []) {
   return `<ul>${items.map(item => `<li>${escapeHtml(typeof item === "string" ? item : `${item.year}: ${item.text}`)}</li>`).join("")}</ul>`;
 }
 
-function reportHtml(report) {
+function reportHtml(report, heading = "") {
   const editionTitle = EDITIONS[report.edition]?.title || EDITIONS[selectedEdition].title;
+  const giftBlock = report.giftMessage ? `<section class="gift-message"><h3>A message for you</h3><p>${escapeHtml(report.giftMessage)}</p><p><strong>From:</strong> ${escapeHtml(report.giftFrom || "Someone special")}</p></section>` : "";
   return `<article class="report-preview edition-${escapeHtml(report.edition || selectedEdition)}">
+    ${heading ? `<h3>${escapeHtml(heading)}</h3>` : ""}
     <div class="report-cover-mini"><div class="edition-label">${escapeHtml(editionTitle)}</div>
-      <div class="zodiac-badge"><strong>${escapeHtml(report.zodiacSign.slice(0, 2).toUpperCase())}</strong><span>${escapeHtml(report.element)}</span></div>
+      <div class="zodiac-badge"><strong>${escapeHtml((report.zodiacSign || "").slice(0, 2).toUpperCase())}</strong><span>${escapeHtml(report.element)}</span></div>
       <p class="eyebrow">PERSONALIZED BIRTH-DATE REPORT</p><h3>${escapeHtml(report.name)}</h3><p>${escapeHtml(report.formattedDate)} • ${escapeHtml(report.zodiacSign)}</p>
     </div>
     <h3>Birthday at a glance</h3><div class="report-grid">
@@ -56,12 +59,29 @@ function reportHtml(report) {
     <h3>Events connected to your date</h3>${listHtml(report.historicalEvents)}<h3>People born on your date</h3>${listHtml(report.famousBirths)}
     <h3>Birth-year profile</h3><p>${escapeHtml(report.yearProfile)}</p><h3>Your personal birthday story</h3><p>${escapeHtml(report.story)}</p>
     <h3>Reflection themes</h3><ul>${(report.themes || []).map(theme => `<li>${escapeHtml(theme)}</li>`).join("")}</ul>
-    <p class="muted disclaimer">${escapeHtml(report.note)}</p></article>`;
+    ${giftBlock}<p class="muted disclaimer">${escapeHtml(report.note)}</p></article>`;
 }
 
 function couplesHtml(data) {
   return `<article class="report-preview edition-couples"><div class="report-cover-mini"><div class="edition-label">Couples / Two Birth Dates</div><h3>Two personal profiles</h3><p>${escapeHtml(data.first.formattedDate)} and ${escapeHtml(data.second.formattedDate)}</p></div>
-    ${reportHtml(data.first)}<h3>Shared comparison</h3><ul>${(data.comparison || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul><p class="muted disclaimer">${escapeHtml(data.note || "Reflective comparison only.")}</p></article>`;
+    ${reportHtml(data.first, "First profile")}${reportHtml(data.second, "Second profile")}<h3>Shared comparison</h3><ul>${(data.comparison || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul><p class="muted disclaimer">${escapeHtml(data.note || "Reflective comparison only.")}</p></article>`;
+}
+
+function familyHtml(data) {
+  const members = (data.members || []).map((member, index) => reportHtml(member, `Family profile ${index + 1}`)).join("");
+  return `<article class="report-preview edition-family"><div class="report-cover-mini"><div class="edition-label">Family Edition</div><h3>${escapeHtml(data.familyName || "Family keepsake")}</h3><p>${escapeHtml(String((data.members || []).length))} individual profiles</p></div>${members}<p class="muted disclaimer">${escapeHtml(data.note || "Family report content is reflective and entertainment-oriented.")}</p></article>`;
+}
+
+function updateFamilyFields() {
+  const count = Math.max(2, Math.min(8, Number($("#familyMembers").value || 4)));
+  familyProfileFields.innerHTML = Array.from({ length: count - 1 }, (_, index) => `<div class="conditional-fields"><strong>Additional family member ${index + 2}</strong><label for="familyName${index}">Name</label><input id="familyName${index}" type="text" maxlength="80" placeholder="Family member name"><label for="familyDate${index}">Birth date</label><input id="familyDate${index}" type="date"></div>`).join("");
+}
+
+function readFamilyProfiles() {
+  return Array.from(familyProfileFields.querySelectorAll(".conditional-fields")).map((block, index) => ({
+    name: $(`#familyName${index}`).value.trim(),
+    birthDate: $(`#familyDate${index}`).value
+  })).filter(member => member.name && member.birthDate);
 }
 
 function updateEditionForm() {
@@ -73,9 +93,11 @@ function updateEditionForm() {
   giftFields.hidden = selectedEdition !== "gift";
   $("#coupleSecondName").required = selectedEdition === "couples";
   $("#coupleSecondBirthDate").required = selectedEdition === "couples";
+  if (selectedEdition === "family" && !familyProfileFields.children.length) updateFamilyFields();
 }
 
 document.querySelectorAll(".edition-card").forEach(card => card.addEventListener("click", () => { selectedEdition = card.dataset.edition; updateEditionForm(); }));
+$("#familyMembers").addEventListener("change", updateFamilyFields);
 
 async function readResponse(response) {
   const contentType = response.headers.get("content-type") || "";
@@ -89,7 +111,7 @@ reportForm.addEventListener("submit", async event => {
   latestReportInput = {
     name: $("#customerName").value.trim(), birthDate: $("#birthDate").value, edition: selectedEdition,
     secondName: $("#coupleSecondName").value.trim(), secondBirthDate: $("#coupleSecondBirthDate").value,
-    familyName: $("#familyName").value.trim(), familyMembers: Number($("#familyMembers").value),
+    familyName: $("#familyName").value.trim(), familyMembers: Number($("#familyMembers").value), familyProfiles: readFamilyProfiles(),
     giftFrom: $("#giftFrom").value.trim(), giftMessage: $("#giftMessage").value.trim()
   };
   reportResult.hidden = false;
@@ -98,7 +120,7 @@ reportForm.addEventListener("submit", async event => {
   try {
     const response = await fetch(`${API_BASE}/api/reports/preview`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(latestReportInput) });
     const data = await readResponse(response);
-    reportResult.innerHTML = selectedEdition === "couples" && data.first ? couplesHtml(data) : reportHtml(data);
+    reportResult.innerHTML = selectedEdition === "couples" && data.first ? couplesHtml(data) : selectedEdition === "family" && data.members ? familyHtml(data) : reportHtml(data);
     downloadButton.hidden = false;
   } catch (error) { showMessage(reportResult, `Unable to generate the report. ${error.message}`, true); }
 });
