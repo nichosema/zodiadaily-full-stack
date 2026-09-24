@@ -7,9 +7,7 @@ import { verifyShopifyHmac, isPaidOrder, containsProduct } from "./lib/shopify.j
 
 const app = express();
 
-app.use(cors({
-  origin: config.frontendUrl === "*" ? true : config.frontendUrl
-}));
+app.use(cors({ origin: config.frontendUrl === "*" ? true : config.frontendUrl }));
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "zodiadaily-backend" });
@@ -17,14 +15,10 @@ app.get("/health", (_req, res) => {
 
 app.post("/api/reports/preview", express.json(), (req, res) => {
   try {
-    const { birthDate, secondBirthDate } = req.body || {};
+    const { birthDate, name, secondBirthDate, secondName, selectedYear } = req.body || {};
     if (!birthDate) return res.status(400).json({ error: "birthDate is required" });
-
-    const first = buildReport(birthDate);
-    const result = secondBirthDate
-      ? compareReports(first, buildReport(secondBirthDate))
-      : first;
-
+    const first = buildReport(birthDate, name, selectedYear);
+    const result = secondBirthDate ? compareReports(first, buildReport(secondBirthDate, secondName, selectedYear)) : first;
     res.json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -33,49 +27,24 @@ app.post("/api/reports/preview", express.json(), (req, res) => {
 
 app.post("/api/reports/preview.pdf", express.json(), async (req, res) => {
   try {
-    if (!req.body?.birthDate) {
-      return res.status(400).json({ error: "birthDate is required" });
-    }
-
-    const report = buildReport(req.body.birthDate);
+    const { birthDate, name, selectedYear } = req.body || {};
+    if (!birthDate) return res.status(400).json({ error: "birthDate is required" });
+    const report = buildReport(birthDate, name, selectedYear);
     const pdf = await createPdf(report);
-
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", 'attachment; filename="zodiadaily-report.pdf"');
+    res.setHeader("Content-Disposition", 'attachment; filename="zodiadaily-personal-discovery-report.pdf"');
     res.send(pdf);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
-app.post(
-  "/webhooks/shopify/orders-create",
-  express.raw({ type: "application/json" }),
-  (req, res) => {
-    const verified = verifyShopifyHmac(
-      req.body,
-      req.get("X-Shopify-Hmac-Sha256")
-    );
-
-    if (!verified) {
-      return res.status(401).json({ error: "Invalid webhook signature" });
-    }
-
-    let order;
-    try {
-      order = JSON.parse(req.body.toString("utf8"));
-    } catch {
-      return res.status(400).json({ error: "Invalid JSON" });
-    }
-
-    res.json({
-      received: true,
-      paid: isPaidOrder(order),
-      productMatched: containsProduct(order)
-    });
-  }
-);
-
-app.listen(config.port, () => {
-  console.log(`ZodiaDaily backend running on port ${config.port}`);
+app.post("/webhooks/shopify/orders-create", express.raw({ type: "application/json" }), (req, res) => {
+  const verified = verifyShopifyHmac(req.body, req.get("X-Shopify-Hmac-Sha256"));
+  if (!verified) return res.status(401).json({ error: "Invalid webhook signature" });
+  let order;
+  try { order = JSON.parse(req.body.toString("utf8")); } catch { return res.status(400).json({ error: "Invalid JSON" }); }
+  res.json({ received: true, paid: isPaidOrder(order), productMatched: containsProduct(order) });
 });
+
+app.listen(config.port, () => console.log(`ZodiaDaily backend running on port ${config.port}`));
