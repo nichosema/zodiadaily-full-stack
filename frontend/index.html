@@ -4,13 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZodiaDaily — Personalized BirthDate Editions</title>
+  <meta name="description" content="Explore personalized symbolic birth-date reports, birthday keepsakes, and creative digital editions from ZodiaDaily.">
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./form-design.css">
+  <link rel="stylesheet" href="./launch.css">
 </head>
 <body>
   <header class="site-header">
     <div class="brand">Birth<span>Date</span></div>
-    <a class="header-link" href="#compare">Compare dates</a>
+    <nav><a class="header-link" href="#compare">Compare dates</a><a class="header-link" href="#launch">Launch updates</a></nav>
   </header>
 
   <main>
@@ -19,6 +21,17 @@
       <h1>Choose a birth-date report made for your story.</h1>
       <p class="hero-copy">Explore different report editions with their own purpose, tone and design. Start with a personal discovery report, a cosmic keepsake, a birthday story or a report for people you love.</p>
       <div class="price-pill">Personalized reports — $4 USD</div>
+      <p class="field-help">ZodiaDaily reports are symbolic and intended for reflection and entertainment. They are not scientific assessments or guaranteed predictions.</p>
+    </section>
+
+    <section class="launch-panel" aria-labelledby="benefits-title">
+      <span class="sample-badge">PREPARE YOUR PERSONAL EDITION</span>
+      <h2 id="benefits-title">A digital keepsake made around a birth date</h2>
+      <div class="launch-grid">
+        <article class="launch-card"><h3>Personal discovery</h3><p>Explore symbolic themes, reflective prompts, and birth-date context.</p></article>
+        <article class="launch-card"><h3>Gift-ready editions</h3><p>Create a keepsake concept for birthdays, friends, or family.</p></article>
+        <article class="launch-card"><h3>Digital delivery</h3><p>Preview the report online and prepare for secure paid PDF delivery after checkout is enabled.</p></article>
+      </div>
     </section>
 
     <section class="panel">
@@ -72,7 +85,7 @@
       <button id="download-pdf" class="secondary" hidden>Download full PDF preview</button>
       <div id="payment-panel" class="conditional-fields" hidden>
         <h3>Purchase your full report</h3>
-        <p class="field-help">The preview is free to inspect. Pay through Shopify to unlock the verified PDF.</p>
+        <p class="field-help">The preview is free to inspect. Pay through Shopify to unlock the verified PDF when payment setup is available.</p>
         <button id="buy-report" type="button">Continue to secure Shopify checkout — $4</button>
         <label for="order-id">After payment, enter your Shopify order ID</label>
         <input id="order-id" type="text" inputmode="numeric" placeholder="e.g. 1234567890">
@@ -92,6 +105,18 @@
         <button type="submit">Compare dates</button>
       </form>
       <div id="compare-result" class="result" hidden></div>
+    </section>
+
+    <section id="launch" class="launch-panel" aria-labelledby="launch-title">
+      <span class="sample-badge">COMING SOON</span>
+      <h2 id="launch-title">ZodiaDaily launch updates</h2>
+      <p>Payment setup is being prepared. Until checkout is enabled, visitors can explore the report preview and follow the launch announcements through your official social channels.</p>
+      <div class="launch-grid">
+        <article class="launch-card"><h3>Explore first</h3><p>Generate a sample report and review the available editions.</p></article>
+        <article class="launch-card"><h3>Follow updates</h3><p>Share the official ZodiaDaily launch announcement when the payment process is ready.</p></article>
+        <article class="launch-card"><h3>Stay informed</h3><p>Do not enter payment details until the official Shopify checkout is active.</p></article>
+      </div>
+      <p class="launch-note">A server-backed email waitlist still needs a verified email provider and backend endpoint before it should be presented as an active subscription form.</p>
     </section>
   </main>
 
