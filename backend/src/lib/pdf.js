@@ -24,99 +24,104 @@ function short(value, max = 240) {
   return text ? (text.length > max ? `${text.slice(0, max - 1)}...` : text) : "Not available";
 }
 
+function textAt(doc, value, x, y, width, height, options = {}) {
+  doc.fillColor(options.color || BODY)
+    .font(options.font || "Helvetica")
+    .fontSize(options.size || 8.5)
+    .text(short(value, options.max || 650), x, y, {
+      width,
+      height,
+      align: options.align || "left",
+      lineGap: options.lineGap ?? 1,
+      lineBreak: false,
+      ellipsis: options.ellipsis ?? true
+    });
+}
+
+function resetCursor(doc) {
+  doc.x = 0;
+  doc.y = 0;
+}
+
 function header(doc, title, subtitle = "") {
+  resetCursor(doc);
   doc.rect(0, 0, 595, 842).fill(PAPER);
   doc.rect(0, 0, 595, 34).fill(NAVY);
-  doc.fillColor("#f5d98e").font("Helvetica-Bold").fontSize(7)
-    .text("BIRTHDATE - PERSONAL DISCOVERY REPORT", 42, 14, { width: 511, align: "center", lineBreak: false });
+  textAt(doc, "BIRTHDATE • PERSONAL DISCOVERY REPORT", 42, 14, 511, 10, {
+    color: "#f5d98e", font: "Helvetica-Bold", size: 7, max: 80, align: "center"
+  });
   if (title) {
-    doc.fillColor(INK).font("Helvetica-Bold").fontSize(18)
-      .text(title.toUpperCase(), 42, 68, { width: 511, align: "center", lineBreak: false });
+    textAt(doc, title.toUpperCase(), 42, 68, 511, 24, {
+      color: INK, font: "Helvetica-Bold", size: 18, max: 120, align: "center"
+    });
+    textAt(doc, subtitle, 42, 96, 511, 14, {
+      color: MUTED, size: 8.5, max: 170, align: "center"
+    });
+    doc.strokeColor(LINE).lineWidth(0.7).moveTo(42, 116).lineTo(553, 116).stroke();
   }
-  if (subtitle) {
-    doc.fillColor(MUTED).font("Helvetica").fontSize(8.5)
-      .text(short(subtitle, 150), 42, 96, { width: 511, align: "center", lineBreak: false });
-  }
-  if (title) doc.strokeColor(LINE).lineWidth(0.7).moveTo(42, 116).lineTo(553, 116).stroke();
+  resetCursor(doc);
 }
 
 function footer(doc, label) {
   doc.rect(0, 806, 595, 36).fill(NAVY);
-  // lineBreak:false is essential: y=819 is close to the page bottom and
-  // otherwise PDFKit can create an unwanted extra page.
-  doc.fillColor("#ffffff").font("Helvetica").fontSize(7)
-    .text(`BIRTHDATE - ${label}`, 42, 819, {
-      width: 511,
-      height: 10,
-      align: "center",
-      lineBreak: false,
-      ellipsis: false
-    });
+  textAt(doc, `BIRTHDATE • ${label}`, 42, 819, 511, 9, {
+    color: "#ffffff", size: 7, max: 90, align: "center", ellipsis: false
+  });
+  resetCursor(doc);
 }
 
-function startSection(doc, title, subtitle) {
+function newPage(doc, title, subtitle) {
   doc.addPage({ size: "A4", margin: 0 });
+  resetCursor(doc);
   header(doc, title, subtitle);
+  resetCursor(doc);
 }
 
-function card(doc, x, y, w, h, title, value, fontSize = 8.2) {
+function card(doc, x, y, w, h, title, value, size = 8.2) {
   doc.roundedRect(x, y, w, h, 6).fillAndStroke("#fffaf0", LINE);
-  doc.fillColor(INK).font("Helvetica-Bold").fontSize(8.5)
-    .text(short(title, 65), x + 10, y + 10, { width: w - 20, lineBreak: false });
-  doc.fillColor(BODY).font("Helvetica").fontSize(fontSize)
-    .text(short(value, h >= 90 ? 520 : 180), x + 10, y + 28, {
-      width: w - 20,
-      height: h - 34,
-      lineGap: 1,
-      ellipsis: true
-    });
+  textAt(doc, title, x + 10, y + 10, w - 20, 11, {
+    color: INK, font: "Helvetica-Bold", size: 8.5, max: 70
+  });
+  textAt(doc, value, x + 10, y + 28, w - 20, h - 34, {
+    color: BODY, size, max: h >= 90 ? 520 : 220
+  });
+  resetCursor(doc);
 }
 
-function paragraph(doc, value, x, y, w = 511, fontSize = 9) {
-  doc.fillColor(BODY).font("Helvetica").fontSize(fontSize)
-    .text(short(value, 650), x, y, { width: w, height: 60, lineGap: 2, ellipsis: true });
+function paragraph(doc, value, x, y, w, h = 48, size = 8.5) {
+  textAt(doc, value, x, y, w, h, { size, max: 650, lineGap: 2 });
+  resetCursor(doc);
 }
 
 function bulletList(doc, items, x, y, max = 5) {
   (items || []).slice(0, max).forEach((item, index) => {
-    const text = typeof item === "string" ? item : `${item.year}: ${item.text}`;
-    doc.fillColor(BODY).font("Helvetica").fontSize(8.2)
-      .text(`- ${short(text, 145)}`, x, y + index * 25, { width: 511, height: 22, ellipsis: true });
+    const value = typeof item === "string" ? item : `${item.year}: ${item.text}`;
+    textAt(doc, `• ${value}`, x, y + index * 25, 511, 20, { size: 8.2, max: 175 });
   });
+  resetCursor(doc);
 }
 
 function drawCover(doc, report) {
   doc.addPage({ size: "A4", margin: 0 });
+  resetCursor(doc);
   header(doc, "", "");
-  doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(29)
-    .text("BIRTHDATE", 42, 155, { width: 511, align: "center", lineBreak: false });
-  doc.fillColor(INK).font("Helvetica-Bold").fontSize(17)
-    .text("PERSONAL DISCOVERY REPORT", 42, 201, { width: 511, align: "center", lineBreak: false });
+  textAt(doc, "BIRTHDATE", 42, 155, 511, 36, { color: NAVY, font: "Helvetica-Bold", size: 29, max: 30, align: "center" });
+  textAt(doc, "PERSONAL DISCOVERY REPORT", 42, 201, 511, 22, { color: INK, font: "Helvetica-Bold", size: 17, max: 40, align: "center" });
 
   const [code, symbolName] = SIGNS[report.zodiacSign] || ["Z", "Zodiac"];
   const cx = 297;
   const cy = 320;
   doc.circle(cx, cy, 91).fillAndStroke("#fffaf0", GOLD);
   doc.circle(cx, cy, 79).lineWidth(1.5).strokeColor(NAVY).stroke();
-  doc.fillColor(GOLD).font("Helvetica-Bold").fontSize(10)
-    .text("BIRTH SIGN", cx - 72, cy - 58, { width: 144, align: "center", lineBreak: false });
-  doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(42)
-    .text(code, cx - 55, cy - 26, { width: 110, align: "center", lineBreak: false });
-  doc.fillColor(NAVY).font("Helvetica-Bold").fontSize(9)
-    .text(symbolName.toUpperCase(), cx - 60, cy + 30, { width: 120, align: "center", lineBreak: false });
-  doc.fillColor(GOLD).font("Helvetica-Bold").fontSize(10)
-    .text("REFLECTION", cx - 72, cy + 48, { width: 144, align: "center", lineBreak: false });
-  doc.fillColor(MUTED).font("Helvetica").fontSize(7)
-    .text("ZODIAC CATEGORY", cx - 60, cy + 66, { width: 120, align: "center", lineBreak: false });
-
-  doc.fillColor(GOLD).font("Helvetica-Bold").fontSize(13)
-    .text(short(report.zodiacSign, 30).toUpperCase(), 42, 430, { width: 511, align: "center", lineBreak: false });
-  doc.fillColor(INK).font("Helvetica-Bold").fontSize(18)
-    .text(short(report.name, 70), 42, 465, { width: 511, align: "center", lineBreak: false });
-  doc.fillColor(INK).font("Helvetica").fontSize(11)
-    .text(short(report.formattedDate, 60).toUpperCase(), 42, 494, { width: 511, align: "center", lineBreak: false });
-  doc.fillColor(MUTED).font("Helvetica").fontSize(9)
-    .text("YOUR DATE - YOUR SYMBOLS - YOUR STORY", 42, 550, { width: 511, align: "center", lineBreak: false });
+  textAt(doc, "BIRTH SIGN", cx - 72, cy - 58, 144, 12, { color: GOLD, font: "Helvetica-Bold", size: 8, max: 20, align: "center" });
+  textAt(doc, code, cx - 55, cy - 26, 110, 44, { color: NAVY, font: "Helvetica-Bold", size: 42, max: 5, align: "center" });
+  textAt(doc, symbolName.toUpperCase(), cx - 60, cy + 30, 120, 12, { color: NAVY, font: "Helvetica-Bold", size: 9, max: 30, align: "center" });
+  textAt(doc, "REFLECTION", cx - 72, cy + 48, 144, 12, { color: GOLD, font: "Helvetica-Bold", size: 8, max: 20, align: "center" });
+  textAt(doc, "ZODIAC CATEGORY", cx - 60, cy + 66, 120, 10, { color: MUTED, size: 7, max: 30, align: "center" });
+  textAt(doc, report.zodiacSign, 42, 430, 511, 18, { color: GOLD, font: "Helvetica-Bold", size: 13, max: 30, align: "center" });
+  textAt(doc, report.name, 42, 465, 511, 24, { color: INK, font: "Helvetica-Bold", size: 18, max: 70, align: "center" });
+  textAt(doc, String(report.formattedDate || "").toUpperCase(), 42, 494, 511, 14, { color: INK, size: 11, max: 60, align: "center" });
+  textAt(doc, "YOUR DATE • YOUR SYMBOLS • YOUR STORY", 42, 550, 511, 12, { color: MUTED, size: 9, max: 60, align: "center" });
   footer(doc, `${report.edition || "classic"} EDITION`);
 }
 
@@ -127,7 +132,7 @@ export function createPdf(report) {
 
   drawCover(doc, report);
 
-  startSection(doc, "Your Birthday at a Glance", "The key details connected to your selected birth date");
+  newPage(doc, "Your Birthday at a Glance", "The key details connected to your selected birth date");
   card(doc, 42, 137, 250, 58, "Name", report.name);
   card(doc, 303, 137, 250, 58, "Date of birth", report.formattedDate);
   card(doc, 42, 207, 250, 58, "Day of week", report.weekday);
@@ -138,11 +143,11 @@ export function createPdf(report) {
   card(doc, 303, 347, 250, 58, "Birth flower", report.birthFlower);
   card(doc, 42, 417, 250, 58, "Life-path number", report.lifePathNumber);
   card(doc, 303, 417, 250, 58, "Personal year", report.personalYear);
-  card(doc, 42, 487, 511, 82, "Calendar context", `Day ${report.dayOfYear} of the year - ${report.daysRemaining} days remaining - ${report.leapYear ? "Leap year" : "Common year"}.`);
-  paragraph(doc, report.note, 42, 600, 511, 8.5);
+  card(doc, 42, 487, 511, 82, "Calendar context", `Day ${report.dayOfYear} of the year • ${report.daysRemaining} days remaining • ${report.leapYear ? "Leap year" : "Common year"}.`);
+  paragraph(doc, report.note, 42, 600, 511, 48, 8.5);
   footer(doc, "2");
 
-  startSection(doc, "Your Personality & Life Areas", "Symbolic interpretations for reflection, not fixed personality measurements");
+  newPage(doc, "Your Personality & Life Areas", "Symbolic interpretations for reflection, not fixed personality measurements");
   card(doc, 42, 137, 511, 72, "Core personality", report.corePersonality, 8.8);
   card(doc, 42, 223, 250, 70, "Key traits", report.keyTraits);
   card(doc, 303, 223, 250, 70, "Strengths", report.strengths);
@@ -151,20 +156,20 @@ export function createPdf(report) {
   card(doc, 42, 391, 250, 70, "Relationships", report.relationship);
   card(doc, 303, 391, 250, 70, "Friendship", report.friendship);
   card(doc, 42, 475, 250, 70, "Learning", report.learning);
-  card(doc, 303, 475, 250, 70, "Work and goals", `${report.workCareer} ${report.goals}`);
+  card(doc, 303, 475, 250, 70, "Work and goals", `${report.workCareer || ""} ${report.goals || ""}`);
   card(doc, 42, 559, 511, 76, "Personal growth", report.growth, 8.8);
   footer(doc, "3");
 
-  startSection(doc, "Your Date in History", "Research-based birthday facts when reference information is available");
+  newPage(doc, "Your Date in History", "Research-based birthday facts when reference information is available");
   card(doc, 42, 137, 511, 68, "Research note", "Date-linked facts are included for context. They do not show that people sharing a birthday have the same personality or destiny.", 8.5);
-  doc.fillColor(INK).font("Helvetica-Bold").fontSize(11).text("Events connected to your date", 42, 231, { lineBreak: false });
+  textAt(doc, "Events connected to your date", 42, 231, 511, 15, { color: INK, font: "Helvetica-Bold", size: 11, max: 50 });
   bulletList(doc, report.historicalEvents, 42, 258, 5);
-  doc.fillColor(INK).font("Helvetica-Bold").fontSize(11).text("People born on your date", 42, 410, { lineBreak: false });
+  textAt(doc, "People born on your date", 42, 410, 511, 15, { color: INK, font: "Helvetica-Bold", size: 11, max: 50 });
   bulletList(doc, report.famousBirths, 42, 437, 5);
   card(doc, 42, 590, 511, 68, "Source approach", "The production version should show source links beside factual entries and remove any entry that cannot be verified.", 8.5);
   footer(doc, "4");
 
-  startSection(doc, "Numbers, Symbols & Birth-Year Context", "Traditional systems presented as cultural or entertainment material");
+  newPage(doc, "Numbers, Symbols & Birth-Year Context", "Traditional systems presented as cultural or entertainment material");
   card(doc, 42, 137, 250, 62, "Life-path number", report.lifePathNumber);
   card(doc, 303, 137, 250, 62, "Birthday number", report.birthdayNumber);
   card(doc, 42, 213, 250, 62, "Attitude number", report.attitudeNumber);
@@ -177,11 +182,11 @@ export function createPdf(report) {
   card(doc, 42, 537, 511, 72, "Interpretation boundary", "Numbers, zodiac categories and symbolic associations are not scientifically validated measurements or predictions.", 8.5);
   footer(doc, "5");
 
-  startSection(doc, "Your Personal Birthday Story", "A reflective keepsake built from your birth date");
+  newPage(doc, "Your Personal Birthday Story", "A reflective keepsake built from your birth date");
   card(doc, 42, 137, 511, 92, `A beginning in ${report.year}`, report.story, 9);
   if (report.aiNarrative) card(doc, 42, 247, 511, 104, "Your AI-personalized narrative", report.aiNarrative, 8.8);
-  paragraph(doc, "Your birth date connects you to a day in history, but it does not limit what you can learn, create or become. Use this report as a prompt for curiosity and self-reflection.", 42, 378, 511, 9);
-  doc.fillColor(INK).font("Helvetica-Bold").fontSize(12).text("Key themes for reflection", 42, 447, { lineBreak: false });
+  paragraph(doc, "Your birth date connects you to a day in history, but it does not limit what you can learn, create or become. Use this report as a prompt for curiosity and self-reflection.", 42, 378, 511, 45, 9);
+  textAt(doc, "Key themes for reflection", 42, 447, 511, 15, { color: INK, font: "Helvetica-Bold", size: 12, max: 60 });
   (report.themes || []).slice(0, 6).forEach((theme, index) => {
     const col = index % 2;
     const row = Math.floor(index / 2);
