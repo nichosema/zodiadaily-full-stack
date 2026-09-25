@@ -4,6 +4,7 @@ dotenv.config();
 export const config = {
   port: Number(process.env.PORT || 4000),
   frontendUrl: process.env.FRONTEND_URL || "*",
+  databaseUrl: process.env.DATABASE_URL || "",
   ai: {
     apiKey: process.env.OPENAI_API_KEY || "",
     baseUrl: (process.env.AI_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, ""),
