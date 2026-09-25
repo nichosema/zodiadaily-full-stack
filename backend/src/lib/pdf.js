@@ -23,7 +23,7 @@ function textAt(doc, value, x, y, width, height, options = {}) {
   doc.fillColor(options.color || BODY).font(options.font || "Helvetica").fontSize(options.size || 8.5);
   doc.text(short(value, options.max || 650), x, y, {
     width,
-    height,
+    ...(height ? { height } : {}),
     align: options.align || "left",
     lineGap: options.lineGap ?? 1,
     lineBreak: false,
@@ -50,9 +50,18 @@ function header(doc, title, subtitle = "") {
 }
 
 function footer(doc, label) {
-  // Keep all footer drawing above PDFKit's bottom boundary. Do not use y=819.
-  doc.rect(0, 790, PAGE_W, 52).fill(NAVY);
-  textAt(doc, `BIRTHDATE - ${label}`, 42, 807, 511, 10, { color: "#ffffff", size: 7, max: 100, align: "center", ellipsis: false });
+  // Keep the footer well inside the printable area. A previous y-position near
+  // the bottom edge caused PDFKit to create an unwanted extra page per section.
+  const footerY = 760;
+  doc.save();
+  doc.rect(0, footerY, PAGE_W, 36).fill(NAVY);
+  doc.fillColor("#ffffff").font("Helvetica").fontSize(7);
+  doc.text(`BIRTHDATE - ${label}`, 42, footerY + 13, {
+    width: 511,
+    align: "center",
+    lineBreak: false
+  });
+  doc.restore();
   resetCursor(doc);
 }
 
