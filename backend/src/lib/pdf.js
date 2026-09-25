@@ -1,5 +1,7 @@
 import PDFDocument from "pdfkit";
 
+const PAGE_W = 595;
+const PAGE_H = 842;
 const NAVY = "#10233f";
 const INK = "#233044";
 const GOLD = "#c9a75a";
@@ -8,34 +10,25 @@ const MUTED = "#687386";
 const LINE = "#ded3bd";
 const BODY = "#3e4b5c";
 
-const SIGNS = {
-  Aries: ["AR", "Ram"], Taurus: ["TA", "Bull"], Gemini: ["GE", "Twins"],
-  Cancer: ["CA", "Crab"], Leo: ["LE", "Lion"], Virgo: ["VI", "Maiden"],
-  Libra: ["LI", "Scales"], Scorpio: ["SC", "Scorpion"], Sagittarius: ["SA", "Archer"],
-  Capricorn: ["CP", "Sea-goat"], Aquarius: ["AQ", "Water-bearer"], Pisces: ["PI", "Fish"]
-};
-
 function clean(value) {
   return String(value ?? "").replace(/[\u0000-\u001F\u007F-\u009F]/g, " ").replace(/\s+/g, " ").trim();
 }
 
 function short(value, max = 240) {
-  const text = clean(value);
-  return text ? (text.length > max ? `${text.slice(0, max - 1)}...` : text) : "Not available";
+  const valueText = clean(value);
+  return valueText ? (valueText.length > max ? `${valueText.slice(0, max - 1)}...` : valueText) : "Not available";
 }
 
 function textAt(doc, value, x, y, width, height, options = {}) {
-  doc.fillColor(options.color || BODY)
-    .font(options.font || "Helvetica")
-    .fontSize(options.size || 8.5)
-    .text(short(value, options.max || 650), x, y, {
-      width,
-      height,
-      align: options.align || "left",
-      lineGap: options.lineGap ?? 1,
-      lineBreak: false,
-      ellipsis: options.ellipsis ?? true
-    });
+  doc.fillColor(options.color || BODY).font(options.font || "Helvetica").fontSize(options.size || 8.5);
+  doc.text(short(value, options.max || 650), x, y, {
+    width,
+    height,
+    align: options.align || "left",
+    lineGap: options.lineGap ?? 1,
+    lineBreak: false,
+    ellipsis: options.ellipsis ?? true
+  });
 }
 
 function resetCursor(doc) {
@@ -45,28 +38,21 @@ function resetCursor(doc) {
 
 function header(doc, title, subtitle = "") {
   resetCursor(doc);
-  doc.rect(0, 0, 595, 842).fill(PAPER);
-  doc.rect(0, 0, 595, 34).fill(NAVY);
-  textAt(doc, "BIRTHDATE • PERSONAL DISCOVERY REPORT", 42, 14, 511, 10, {
-    color: "#f5d98e", font: "Helvetica-Bold", size: 7, max: 80, align: "center"
-  });
+  doc.rect(0, 0, PAGE_W, PAGE_H).fill(PAPER);
+  doc.rect(0, 0, PAGE_W, 34).fill(NAVY);
+  textAt(doc, "BIRTHDATE - PERSONAL DISCOVERY REPORT", 42, 14, 511, 10, { color: "#f5d98e", font: "Helvetica-Bold", size: 7, max: 80, align: "center" });
   if (title) {
-    textAt(doc, title.toUpperCase(), 42, 68, 511, 24, {
-      color: INK, font: "Helvetica-Bold", size: 18, max: 120, align: "center"
-    });
-    textAt(doc, subtitle, 42, 96, 511, 14, {
-      color: MUTED, size: 8.5, max: 170, align: "center"
-    });
+    textAt(doc, title.toUpperCase(), 42, 68, 511, 24, { color: INK, font: "Helvetica-Bold", size: 18, max: 120, align: "center" });
+    textAt(doc, subtitle, 42, 96, 511, 14, { color: MUTED, size: 8.5, max: 170, align: "center" });
     doc.strokeColor(LINE).lineWidth(0.7).moveTo(42, 116).lineTo(553, 116).stroke();
   }
   resetCursor(doc);
 }
 
 function footer(doc, label) {
-  doc.rect(0, 806, 595, 36).fill(NAVY);
-  textAt(doc, `BIRTHDATE • ${label}`, 42, 819, 511, 9, {
-    color: "#ffffff", size: 7, max: 90, align: "center", ellipsis: false
-  });
+  // Keep all footer drawing above PDFKit's bottom boundary. Do not use y=819.
+  doc.rect(0, 790, PAGE_W, 52).fill(NAVY);
+  textAt(doc, `BIRTHDATE - ${label}`, 42, 807, 511, 10, { color: "#ffffff", size: 7, max: 100, align: "center", ellipsis: false });
   resetCursor(doc);
 }
 
@@ -79,12 +65,8 @@ function newPage(doc, title, subtitle) {
 
 function card(doc, x, y, w, h, title, value, size = 8.2) {
   doc.roundedRect(x, y, w, h, 6).fillAndStroke("#fffaf0", LINE);
-  textAt(doc, title, x + 10, y + 10, w - 20, 11, {
-    color: INK, font: "Helvetica-Bold", size: 8.5, max: 70
-  });
-  textAt(doc, value, x + 10, y + 28, w - 20, h - 34, {
-    color: BODY, size, max: h >= 90 ? 520 : 220
-  });
+  textAt(doc, title, x + 10, y + 10, w - 20, 11, { color: INK, font: "Helvetica-Bold", size: 8.5, max: 80 });
+  textAt(doc, value, x + 10, y + 28, w - 20, h - 34, { color: BODY, size, max: h >= 90 ? 520 : 220 });
   resetCursor(doc);
 }
 
@@ -96,7 +78,7 @@ function paragraph(doc, value, x, y, w, h = 48, size = 8.5) {
 function bulletList(doc, items, x, y, max = 5) {
   (items || []).slice(0, max).forEach((item, index) => {
     const value = typeof item === "string" ? item : `${item.year}: ${item.text}`;
-    textAt(doc, `• ${value}`, x, y + index * 25, 511, 20, { size: 8.2, max: 175 });
+    textAt(doc, `- ${value}`, x, y + index * 25, 511, 20, { size: 8.2, max: 175 });
   });
   resetCursor(doc);
 }
@@ -108,20 +90,25 @@ function drawCover(doc, report) {
   textAt(doc, "BIRTHDATE", 42, 155, 511, 36, { color: NAVY, font: "Helvetica-Bold", size: 29, max: 30, align: "center" });
   textAt(doc, "PERSONAL DISCOVERY REPORT", 42, 201, 511, 22, { color: INK, font: "Helvetica-Bold", size: 17, max: 40, align: "center" });
 
-  const [code, symbolName] = SIGNS[report.zodiacSign] || ["Z", "Zodiac"];
+  const sign = short(report.zodiacSign, 30).toUpperCase();
+  const animal = {
+    Aries: "RAM", Taurus: "BULL", Gemini: "TWINS", Cancer: "CRAB", Leo: "LION",
+    Virgo: "MAIDEN", Libra: "SCALES", Scorpio: "SCORPION", Sagittarius: "ARCHER",
+    Capricorn: "SEA-GOAT", Aquarius: "WATER-BEARER", Pisces: "FISH"
+  }[report.zodiacSign] || "ZODIAC";
   const cx = 297;
   const cy = 320;
   doc.circle(cx, cy, 91).fillAndStroke("#fffaf0", GOLD);
   doc.circle(cx, cy, 79).lineWidth(1.5).strokeColor(NAVY).stroke();
   textAt(doc, "BIRTH SIGN", cx - 72, cy - 58, 144, 12, { color: GOLD, font: "Helvetica-Bold", size: 8, max: 20, align: "center" });
-  textAt(doc, code, cx - 55, cy - 26, 110, 44, { color: NAVY, font: "Helvetica-Bold", size: 42, max: 5, align: "center" });
-  textAt(doc, symbolName.toUpperCase(), cx - 60, cy + 30, 120, 12, { color: NAVY, font: "Helvetica-Bold", size: 9, max: 30, align: "center" });
-  textAt(doc, "REFLECTION", cx - 72, cy + 48, 144, 12, { color: GOLD, font: "Helvetica-Bold", size: 8, max: 20, align: "center" });
-  textAt(doc, "ZODIAC CATEGORY", cx - 60, cy + 66, 120, 10, { color: MUTED, size: 7, max: 30, align: "center" });
-  textAt(doc, report.zodiacSign, 42, 430, 511, 18, { color: GOLD, font: "Helvetica-Bold", size: 13, max: 30, align: "center" });
+  textAt(doc, sign, cx - 70, cy - 25, 140, 24, { color: NAVY, font: "Helvetica-Bold", size: 18, max: 30, align: "center" });
+  textAt(doc, animal, cx - 60, cy + 12, 120, 12, { color: NAVY, font: "Helvetica-Bold", size: 9, max: 30, align: "center" });
+  textAt(doc, "REFLECTION", cx - 72, cy + 40, 144, 12, { color: GOLD, font: "Helvetica-Bold", size: 8, max: 20, align: "center" });
+  textAt(doc, "ZODIAC CATEGORY", cx - 60, cy + 58, 120, 10, { color: MUTED, size: 7, max: 30, align: "center" });
+  textAt(doc, sign, 42, 430, 511, 18, { color: GOLD, font: "Helvetica-Bold", size: 13, max: 30, align: "center" });
   textAt(doc, report.name, 42, 465, 511, 24, { color: INK, font: "Helvetica-Bold", size: 18, max: 70, align: "center" });
   textAt(doc, String(report.formattedDate || "").toUpperCase(), 42, 494, 511, 14, { color: INK, size: 11, max: 60, align: "center" });
-  textAt(doc, "YOUR DATE • YOUR SYMBOLS • YOUR STORY", 42, 550, 511, 12, { color: MUTED, size: 9, max: 60, align: "center" });
+  textAt(doc, "YOUR DATE - YOUR SYMBOLS - YOUR STORY", 42, 550, 511, 12, { color: MUTED, size: 9, max: 60, align: "center" });
   footer(doc, `${report.edition || "classic"} EDITION`);
 }
 
@@ -143,11 +130,11 @@ export function createPdf(report) {
   card(doc, 303, 347, 250, 58, "Birth flower", report.birthFlower);
   card(doc, 42, 417, 250, 58, "Life-path number", report.lifePathNumber);
   card(doc, 303, 417, 250, 58, "Personal year", report.personalYear);
-  card(doc, 42, 487, 511, 82, "Calendar context", `Day ${report.dayOfYear} of the year • ${report.daysRemaining} days remaining • ${report.leapYear ? "Leap year" : "Common year"}.`);
+  card(doc, 42, 487, 511, 82, "Calendar context", `Day ${report.dayOfYear} of the year - ${report.daysRemaining} days remaining - ${report.leapYear ? "Leap year" : "Common year"}.`);
   paragraph(doc, report.note, 42, 600, 511, 48, 8.5);
   footer(doc, "2");
 
-  newPage(doc, "Your Personality & Life Areas", "Symbolic interpretations for reflection, not fixed personality measurements");
+  newPage(doc, "Your Personality and Life Areas", "Symbolic interpretations for reflection, not fixed personality measurements");
   card(doc, 42, 137, 511, 72, "Core personality", report.corePersonality, 8.8);
   card(doc, 42, 223, 250, 70, "Key traits", report.keyTraits);
   card(doc, 303, 223, 250, 70, "Strengths", report.strengths);
@@ -169,7 +156,7 @@ export function createPdf(report) {
   card(doc, 42, 590, 511, 68, "Source approach", "The production version should show source links beside factual entries and remove any entry that cannot be verified.", 8.5);
   footer(doc, "4");
 
-  newPage(doc, "Numbers, Symbols & Birth-Year Context", "Traditional systems presented as cultural or entertainment material");
+  newPage(doc, "Numbers, Symbols and Birth-Year Context", "Traditional systems presented as cultural or entertainment material");
   card(doc, 42, 137, 250, 62, "Life-path number", report.lifePathNumber);
   card(doc, 303, 137, 250, 62, "Birthday number", report.birthdayNumber);
   card(doc, 42, 213, 250, 62, "Attitude number", report.attitudeNumber);
