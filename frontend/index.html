@@ -70,6 +70,15 @@
       </form>
       <div id="report-result" class="result" hidden></div>
       <button id="download-pdf" class="secondary" hidden>Download full PDF preview</button>
+      <div id="payment-panel" class="conditional-fields" hidden>
+        <h3>Purchase your full report</h3>
+        <p class="field-help">The preview is free to inspect. Pay through Shopify to unlock the verified PDF.</p>
+        <button id="buy-report" type="button">Continue to secure Shopify checkout — $4</button>
+        <label for="order-id">After payment, enter your Shopify order ID</label>
+        <input id="order-id" type="text" inputmode="numeric" placeholder="e.g. 1234567890">
+        <button id="get-paid-pdf" type="button" class="secondary">Verify order and download paid PDF</button>
+        <p id="payment-status" class="field-help" role="status"></p>
+      </div>
     </section>
 
     <section id="compare" class="panel">
