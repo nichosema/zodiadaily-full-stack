@@ -5,15 +5,17 @@ import { buildReport, compareReports } from "./lib/report.js";
 import { addAiNarrative, addAiNarratives } from "./lib/ai.js";
 import { createPdf } from "./lib/pdf.js";
 import { verifyShopifyHmac, isPaidOrder, containsProduct } from "./lib/shopify.js";
+import { databaseConfigured, initializeDatabase, savePaidOrder, findPaidOrder } from "./lib/db.js";
 
 const app = express();
-const paidOrders = new Map();
+const fallbackOrders = new Map();
 
 app.use(cors({ origin: config.frontendUrl === "*" ? true : config.frontendUrl }));
 app.get("/health", (_req, res) => res.json({
   ok: true,
   service: "zodiadaily-backend",
   aiConfigured: Boolean(config.ai.apiKey),
+  databaseConfigured: databaseConfigured(),
   shopifyWebhookConfigured: Boolean(config.shopify.webhookSecret)
 }));
 
@@ -97,7 +99,6 @@ async function sendPdf(res, report, filename) {
   res.send(pdf);
 }
 
-// Testing/preview endpoint. Do not use this endpoint as paid delivery.
 app.post("/api/reports/preview.pdf", express.json(), async (req, res) => {
   try {
     const report = await makeReport(req.body || {});
@@ -108,23 +109,28 @@ app.post("/api/reports/preview.pdf", express.json(), async (req, res) => {
   }
 });
 
-// Paid delivery endpoint. The Shopify webhook must first record a paid order
-// containing the configured ZodiaDaily product or variant.
+async function getOrder(orderId) {
+  if (databaseConfigured()) {
+    try {
+      return await findPaidOrder(orderId);
+    } catch (error) {
+      console.error("Database order lookup failed:", error);
+    }
+  }
+  return fallbackOrders.get(orderId) || null;
+}
+
 app.post("/api/orders/:orderId/report.pdf", express.json(), async (req, res) => {
   try {
     const orderId = String(req.params.orderId || "");
-    const order = paidOrders.get(orderId);
+    const order = await getOrder(orderId);
 
     if (!order) {
-      return res.status(404).json({
-        error: "Order has not been received by the payment webhook yet."
-      });
+      return res.status(404).json({ error: "Order has not been received by the payment webhook yet." });
     }
 
     if (!order.paid || !order.productMatched) {
-      return res.status(402).json({
-        error: "This order is not verified as a paid ZodiaDaily order."
-      });
+      return res.status(402).json({ error: "This order is not verified as a paid ZodiaDaily order." });
     }
 
     const report = await makeReport(req.body || {});
@@ -135,8 +141,8 @@ app.post("/api/orders/:orderId/report.pdf", express.json(), async (req, res) => 
   }
 });
 
-app.get("/api/orders/:orderId/status", (req, res) => {
-  const order = paidOrders.get(String(req.params.orderId));
+app.get("/api/orders/:orderId/status", async (req, res) => {
+  const order = await getOrder(String(req.params.orderId));
   if (!order) return res.status(404).json({ found: false, message: "Order not found yet" });
   res.json({
     found: true,
@@ -149,7 +155,7 @@ app.get("/api/orders/:orderId/status", (req, res) => {
   });
 });
 
-app.post("/webhooks/shopify/orders-create", express.raw({ type: "application/json" }), (req, res) => {
+app.post("/webhooks/shopify/orders-create", express.raw({ type: "application/json" }), async (req, res) => {
   const verified = verifyShopifyHmac(req.body, req.get("X-Shopify-Hmac-Sha256"));
   if (!verified) return res.status(401).json({ error: "Invalid webhook signature" });
 
@@ -163,24 +169,48 @@ app.post("/webhooks/shopify/orders-create", express.raw({ type: "application/jso
   const paid = isPaidOrder(order);
   const productMatched = containsProduct(order);
   const orderId = String(order.id || order.order_number || "");
+  const storedOrder = {
+    orderId,
+    paid,
+    productMatched,
+    email: order.email || order.contact_email || "",
+    createdAt: new Date().toISOString()
+  };
 
   if (orderId) {
-    paidOrders.set(orderId, {
-      orderId,
-      paid,
-      productMatched,
-      email: order.email || order.contact_email || "",
-      createdAt: new Date().toISOString()
-    });
+    fallbackOrders.set(orderId, storedOrder);
+    if (databaseConfigured()) {
+      try {
+        await savePaidOrder(storedOrder);
+      } catch (error) {
+        console.error("Database order save failed:", error);
+      }
+    }
   }
 
   res.json({
     received: true,
     stored: Boolean(orderId),
+    durableStorage: databaseConfigured(),
     paid,
     productMatched,
     readyForDelivery: paid && productMatched
   });
 });
 
-app.listen(config.port, () => console.log(`ZodiaDaily backend running on port ${config.port}`));
+async function start() {
+  if (databaseConfigured()) {
+    try {
+      await initializeDatabase();
+      console.log("PostgreSQL order storage initialized");
+    } catch (error) {
+      console.error("PostgreSQL initialization failed:", error.message);
+    }
+  } else {
+    console.warn("DATABASE_URL is not configured; using temporary in-memory order storage");
+  }
+
+  app.listen(config.port, () => console.log(`ZodiaDaily backend running on port ${config.port}`));
+}
+
+start();
