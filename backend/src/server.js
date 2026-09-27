@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import express from "express";
 import cors from "cors";
 import { config } from "./config.js";
@@ -5,7 +6,7 @@ import { buildReport, compareReports } from "./lib/report.js";
 import { addAiNarrative, addAiNarratives } from "./lib/ai.js";
 import { createPdf } from "./lib/pdf.js";
 import { verifyShopifyHmac, isPaidOrder, containsProduct } from "./lib/shopify.js";
-import { databaseConfigured, initializeDatabase, savePaidOrder, findPaidOrder } from "./lib/db.js";
+import { databaseConfigured, initializeDatabase, savePaidOrder, findPaidOrder, createPurchaseSession, findPurchaseSession, deletePurchaseSession } from "./lib/db.js";
 
 const app = express();
 const fallbackOrders = new Map();
@@ -37,6 +38,29 @@ app.get("/health", (_req, res) => res.json({
   shopifyWebhookConfigured: Boolean(config.shopify.webhookSecret)
 }));
 
+function safePurchasePayload(payload = {}) {
+  const allowed = [
+    "name", "birthDate", "edition", "secondName", "secondBirthDate",
+    "familyName", "familyMembers", "familyProfiles", "giftFrom", "giftMessage"
+  ];
+  const output = {};
+  for (const key of allowed) if (payload[key] !== undefined) output[key] = payload[key];
+  return output;
+}
+
+function shopifyProperty(properties = [], targetName = "_zodia_session") {
+  const item = Array.isArray(properties) ? properties.find(property => property?.name === targetName) : null;
+  return item?.value ? String(item.value) : "";
+}
+
+function buildShopifyCartUrl(token) {
+  const variantId = String(config.shopify.variantId || "").replace(/^gid:\/\/shopify\/ProductVariant\//, "");
+  const shop = String(config.shopify.storeDomain || "").replace(/^https?:\/\//, "").replace(/\/$/, "");
+  if (!variantId || !shop) throw new Error("Shopify product configuration is incomplete.");
+  const encoded = Buffer.from(JSON.stringify({ _zodia_session: token }), "utf8").toString("base64url");
+  return `https://${shop}/cart/${variantId}:1?properties=${encoded}`;
+}
+
 function attachEdition(report, metadata = {}) {
   return Object.assign(report, {
     edition: metadata.edition || "classic",
@@ -62,6 +86,22 @@ async function makeReport(payload = {}) {
     { familyName, familyMembers }
   );
 }
+
+app.post("/api/purchase-sessions", express.json({ limit: "32kb" }), async (req, res) => {
+  if (!allowRequest(req, "purchase-session", 10)) return res.status(429).json({ error: "Too many checkout attempts. Please wait a moment and try again." });
+  try {
+    const payload = safePurchasePayload(req.body || {});
+    if (!payload.name || !payload.birthDate) return res.status(400).json({ error: "Name and birth date are required." });
+    const token = crypto.randomBytes(24).toString("base64url");
+    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
+    if (databaseConfigured()) await createPurchaseSession(token, payload, expiresAt);
+    else return res.status(503).json({ error: "Purchase preparation requires database storage." });
+    res.json({ checkoutUrl: buildShopifyCartUrl(token), expiresAt });
+  } catch (error) {
+    console.error("Purchase session error:", error);
+    res.status(400).json({ error: error.message });
+  }
+});
 
 app.post("/api/reports/preview", express.json({ limit: "32kb" }), async (req, res) => {
   if (!allowRequest(req, "preview")) return res.status(429).json({ error: "Too many preview requests. Please wait a moment and try again." });
@@ -157,7 +197,8 @@ app.post("/api/orders/:orderId/report.pdf", express.json({ limit: "32kb" }), asy
       return res.status(402).json({ error: "This order is not verified as a paid ZodiaDaily order." });
     }
 
-    const report = await makeReport(req.body || {});
+    const reportInput = order.reportPayload || req.body || {};
+    const report = await makeReport(reportInput);
     await sendPdf(res, report, `zodiadaily-order-${orderId}.pdf`);
   } catch (error) {
     console.error("Paid PDF error:", error);
@@ -194,11 +235,28 @@ app.post("/webhooks/shopify/orders-create", express.raw({ type: "application/jso
   const paid = isPaidOrder(order);
   const productMatched = containsProduct(order);
   const orderId = String(order.id || order.order_number || "");
+  const lineItems = Array.isArray(order.line_items) ? order.line_items : [];
+  const sessionToken = lineItems.map(item => shopifyProperty(item.properties)).find(Boolean) || "";
+  let reportPayload = null;
+
+  if (sessionToken && databaseConfigured()) {
+    try {
+      const session = await findPurchaseSession(sessionToken);
+      if (session) {
+        reportPayload = session.reportPayload;
+        await deletePurchaseSession(sessionToken);
+      }
+    } catch (error) {
+      console.error("Purchase session lookup failed:", error);
+    }
+  }
+
   const storedOrder = {
     orderId,
     paid,
     productMatched,
     email: order.email || order.contact_email || "",
+    reportPayload,
     createdAt: new Date().toISOString()
   };
 
@@ -219,7 +277,8 @@ app.post("/webhooks/shopify/orders-create", express.raw({ type: "application/jso
     durableStorage: databaseConfigured(),
     paid,
     productMatched,
-    readyForDelivery: paid && productMatched
+    readyForDelivery: paid && productMatched,
+    reportBound: Boolean(reportPayload)
   });
 });
 
