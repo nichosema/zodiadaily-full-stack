@@ -29,3 +29,12 @@ html{scroll-behavior:smooth}body{background:radial-gradient(circle at 10% 0%,#ff
 /* Conversion trust row */
 .hero-trust-row{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin:14px auto 0;max-width:760px}
 .hero-trust-row span{padding:7px 10px;border:1px solid #dfd4bf;border-radius:999px;background:#fffaf0;color:#687386;font-size:11px;font-weight:800}
+
+/* Conversion-focused checkout reassurance */
+.unlock-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.unlock-steps>div{display:flex;gap:8px;align-items:flex-start;padding:11px;border:1px solid #e2d6bb;border-radius:12px;background:#fffdf8}
+.unlock-steps b{display:grid;place-items:center;flex:0 0 24px;height:24px;border-radius:50%;background:#efe1ad;color:#604a12;font-size:11px}
+.unlock-steps strong{display:block;font-size:11px;color:#18212f}
+.unlock-steps small{display:block;margin-top:2px;color:#687386;font-size:10px;line-height:1.4}
+.unlock-price{border-top:1px solid #e2d6bb;padding-top:12px}
+@media(max-width:650px){.unlock-steps{grid-template-columns:1fr}.unlock-steps>div{align-items:center}}
