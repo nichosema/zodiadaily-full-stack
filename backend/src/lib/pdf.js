@@ -416,7 +416,8 @@ export function createPdf(report, options = {}) {
 
   if (edition === "couples" && normalized.second) renderCouples(doc, normalized);
   else if (edition === "family" && Array.isArray(normalized.members)) renderFamily(doc, normalized);
-  else renderGift(doc, normalized);
+  else if (edition === "gift") renderGift(doc, normalized);
+  else renderSingle(doc, normalized);
 
   doc.end();
   return new Promise((resolve, reject) => {
