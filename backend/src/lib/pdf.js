@@ -82,12 +82,27 @@ function cover(doc, report) {
   foot(doc, `${report.edition || "classic"} EDITION`);
 }
 
-export function createPdf(report) {
+export function createPdf(report, options = {}) {
   const doc = new PDFDocument({ size: "A4", margin: 0, autoFirstPage: false, info: { Title: "BirthDate Personal Discovery Report", Author: "ZodiaDaily" } });
   const chunks = [];
   doc.on("data", chunk => chunks.push(chunk));
 
   cover(doc, report);
+
+  if (options.preview) {
+    page(doc, "Sample Preview", "A short look at the style and key birth-date context");
+    box(doc, 42, 137, 250, 58, "Name", report.name);
+    box(doc, 303, 137, 250, 58, "Date of birth", report.formattedDate);
+    box(doc, 42, 207, 250, 58, "Zodiac sign", report.zodiacSign);
+    box(doc, 303, 207, 250, 58, "Element", report.element);
+    box(doc, 42, 277, 511, 82, "Personality reflection", report.corePersonality, 8.8);
+    box(doc, 42, 371, 511, 88, "AI-personalized reflection", report.aiNarrative || report.story, 8.8);
+    box(doc, 42, 473, 511, 78, "Preview boundary", "This sample is intentionally shorter than the finished paid report. The complete edition contains additional sections and a designed keepsake layout.");
+    t(doc, "ZodiaDaily • Symbolic and entertainment content only", 42, 590, 511, { color: MUTED, size: 8, max: 100, align: "center" });
+    foot(doc, "SAMPLE");
+    doc.end();
+    return new Promise((resolve, reject) => { doc.on("end", () => resolve(Buffer.concat(chunks))); doc.on("error", reject); });
+  }
 
   page(doc, "Your Birthday at a Glance", "The key details connected to your selected birth date");
   box(doc, 42, 137, 250, 58, "Name", report.name); box(doc, 303, 137, 250, 58, "Date of birth", report.formattedDate);
