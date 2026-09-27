@@ -86,17 +86,52 @@ function previewProfile(report = {}, extra = {}) {
 }
 
 async function makeReport(payload = {}) {
-  const { birthDate, name, selectedYear, edition, familyName, familyMembers, giftFrom, giftMessage } = payload;
+  const {
+    birthDate, name, secondBirthDate, secondName, selectedYear, edition,
+    familyName, familyMembers, familyProfiles, giftFrom, giftMessage
+  } = payload;
   if (!birthDate) throw new Error("birthDate is required");
 
+  const metadata = { edition, familyName, familyMembers, giftFrom, giftMessage };
+
+  // Couples reports are built from two complete profiles so the paid PDF
+  // contains both people instead of silently falling back to Person 1.
+  if (secondBirthDate) {
+    const first = await addAiNarrative(
+      attachEdition(await buildReport(birthDate, name, selectedYear), { ...metadata, edition: edition || "couples" }),
+      { firstName: name, secondName }
+    );
+    const second = await addAiNarrative(
+      attachEdition(await buildReport(secondBirthDate, secondName, selectedYear), { ...metadata, edition: edition || "couples" }),
+      { firstName: name, secondName }
+    );
+    return compareReports(first, second);
+  }
+
+  // Family reports retain each selected member as a complete profile.
+  if (edition === "family") {
+    const rawMembers = [
+      attachEdition(await buildReport(birthDate, name, selectedYear), metadata)
+    ];
+    for (const member of Array.isArray(familyProfiles) ? familyProfiles.slice(0, 7) : []) {
+      if (!member?.birthDate || !member?.name) continue;
+      rawMembers.push(attachEdition(
+        await buildReport(member.birthDate, member.name, selectedYear),
+        metadata
+      ));
+    }
+    const members = await addAiNarratives(rawMembers, { familyName, familyMembers });
+    return {
+      edition: "family",
+      familyName: familyName || "Family keepsake",
+      familyMembers: familyMembers || "",
+      members,
+      note: "Family profiles are symbolic and reflective, not scientific assessments."
+    };
+  }
+
   return addAiNarrative(
-    attachEdition(await buildReport(birthDate, name, selectedYear), {
-      edition,
-      familyName,
-      familyMembers,
-      giftFrom,
-      giftMessage
-    }),
+    attachEdition(await buildReport(birthDate, name, selectedYear), metadata),
     { familyName, familyMembers }
   );
 }
