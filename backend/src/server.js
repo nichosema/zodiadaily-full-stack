@@ -395,4 +395,8 @@ async function start() {
   app.listen(config.port, () => console.log(`ZodiaDaily backend running on port ${config.port}`));
 }
 
-start();
+// Vercel imports this Express app as a serverless function. Local/Codespaces
+// development still starts the HTTP listener normally.
+if (!process.env.VERCEL) start();
+
+export default app;
