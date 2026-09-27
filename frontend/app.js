@@ -114,6 +114,7 @@ function updateFamilyFields() { const count = Math.max(2, Math.min(8, Number($("
 function readFamilyProfiles() { return Array.from(familyProfileFields.querySelectorAll(".conditional-fields")).map((_, i) => ({ name: $(`#familyName${i}`).value.trim(), birthDate: $(`#familyDate${i}`).value })).filter(m => m.name && m.birthDate); }
 function updateEditionForm() {
   selectedEditionInput.value = selectedEdition;
+  if (reportForm) reportForm.dataset.edition = selectedEdition;
   editionDescription.textContent = EDITIONS[selectedEdition].description;
   document.querySelectorAll(".edition-card").forEach(card => card.classList.toggle("selected", card.dataset.edition === selectedEdition));
   secondPersonFields.hidden = selectedEdition !== "couples";
