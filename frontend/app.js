@@ -79,8 +79,39 @@ function reportHtml(report, heading = "") {
     </section>
   </article>`;
 }
-function couplesHtml(data) { return `<article class="report-preview edition-couples"><div class="report-cover-mini"><div class="edition-label">Couples / Two Birth Dates</div><h3>Two Personal Profiles</h3><p>${escapeHtml(safe(data.first.formattedDate))} and ${escapeHtml(safe(data.second.formattedDate))}</p></div>${reportHtml(data.first, "First Profile")}${reportHtml(data.second, "Second Profile")}<section class="ai-narrative"><h3>Shared Comparison</h3><ul>${(data.comparison || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section></article>`; }
-function familyHtml(data) { return `<article class="report-preview edition-family"><div class="report-cover-mini"><div class="edition-label">Family Edition</div><h3>${escapeHtml(safe(data.familyName))}</h3><p>${escapeHtml(String((data.members || []).length))} individual profiles</p></div>${(data.members || []).map((member, i) => reportHtml(member, `Family Profile ${i + 1}`)).join("")}<p class="muted disclaimer">${escapeHtml(safe(data.note))}</p></article>`; }
+function couplesHtml(data) {
+  const editionTitle = "Couples / Two Birth Dates";
+  return `<article class="report-preview teaser-preview edition-couples">
+    <div class="report-cover-mini">
+      <div class="edition-label">${editionTitle}</div>
+      <p class="eyebrow">YOUR PERSONALIZED PREVIEW</p>
+      <h3>Two personalized profiles</h3>
+      <p>${escapeHtml(safe(data.first?.formattedDate))} • ${escapeHtml(safe(data.second?.formattedDate))}</p>
+    </div>
+    <section class="preview-teaser">
+      <h3>Your couples edition is ready ✨</h3>
+      <p>The full report contains both personalized profiles plus a shared reflection.</p>
+      <ul><li>Two birth-date profiles</li><li>Shared reflection</li><li>AI-written personalized content</li><li>Historical and birthday context</li></ul>
+      <p class="muted disclaimer">Unlock the complete edition to read the full content.</p>
+    </section>
+  </article>`;
+}
+function familyHtml(data) {
+  return `<article class="report-preview teaser-preview edition-family">
+    <div class="report-cover-mini">
+      <div class="edition-label">Family Edition</div>
+      <p class="eyebrow">YOUR PERSONALIZED PREVIEW</p>
+      <h3>${escapeHtml(safe(data.familyName))}</h3>
+      <p>${escapeHtml(String((data.members || []).length))} personalized profiles prepared</p>
+    </div>
+    <section class="preview-teaser">
+      <h3>Your family edition is ready ✨</h3>
+      <p>The full report contains personalized profiles for your selected family members and family-focused reflections.</p>
+      <ul><li>Individual family profiles</li><li>Family-focused reflections</li><li>AI-written personalized content</li><li>Birthday and historical context</li></ul>
+      <p class="muted disclaimer">Unlock the complete edition to read the full content.</p>
+    </section>
+  </article>`;
+}
 function updateFamilyFields() { const count = Math.max(2, Math.min(8, Number($("#familyMembers").value || 4))); familyProfileFields.innerHTML = Array.from({ length: count - 1 }, (_, i) => `<div class="conditional-fields"><strong>Additional Family Member ${i + 2}</strong><label for="familyName${i}">Name</label><input id="familyName${i}" type="text" maxlength="80"><label for="familyDate${i}">Birth date</label><input id="familyDate${i}" type="date"></div>`).join(""); }
 function readFamilyProfiles() { return Array.from(familyProfileFields.querySelectorAll(".conditional-fields")).map((_, i) => ({ name: $(`#familyName${i}`).value.trim(), birthDate: $(`#familyDate${i}`).value })).filter(m => m.name && m.birthDate); }
 function updateEditionForm() { selectedEditionInput.value = selectedEdition; editionDescription.textContent = EDITIONS[selectedEdition].description; document.querySelectorAll(".edition-card").forEach(card => card.classList.toggle("selected", card.dataset.edition === selectedEdition)); secondPersonFields.hidden = selectedEdition !== "couples"; familyFields.hidden = selectedEdition !== "family"; giftFields.hidden = selectedEdition !== "gift"; $("#coupleSecondName").required = selectedEdition === "couples"; $("#coupleSecondBirthDate").required = selectedEdition === "couples"; if (selectedEdition === "family" && !familyProfileFields.children.length) updateFamilyFields(); }
@@ -99,7 +130,7 @@ if (clearButton) clearButton.addEventListener("click", () => {
   selectedEdition = "classic";
   updateEditionForm();
   reportResult.hidden = true;
-  paymentPanel.hidden = true;
+  const paymentPanel = document.querySelector("#payment-panel"); if (paymentPanel) paymentPanel.hidden = true;
   latestReportInput = null;
   setDateLimits();
 });
