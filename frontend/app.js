@@ -1,4 +1,4 @@
-const API_BASE = "https://upgraded-waddle-r4pvj55pj67gh946-4000.app.github.dev";
+const API_BASE = String(window.ZODIADAILY_API_BASE || "https://upgraded-waddle-r4pvj55pj67gh946-4000.app.github.dev").replace(/\/$/, "");
 
 const EDITIONS = {
   classic: { title: "Classic Personal Discovery", description: "A balanced personal report for discovery and reflection." },
@@ -166,6 +166,7 @@ if (clearButton) clearButton.addEventListener("click", () => {
   reportResult.hidden = true;
   const paymentPanel = document.querySelector("#payment-panel"); if (paymentPanel) paymentPanel.hidden = true;
   latestReportInput = null;
+  if (typeof resetPurchaseState === "function") resetPurchaseState();
   setDateLimits();
 });
 setDateLimits();
