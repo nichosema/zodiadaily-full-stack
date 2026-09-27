@@ -56,25 +56,52 @@ function reportHtml(report) {
   const editionTitle = EDITIONS[report.edition || selectedEdition]?.title || "Personalized Birth-Date Report";
   const name = escapeHtml(safe(report.name));
   const date = escapeHtml(safe(report.formattedDate));
+  const sign = safe(report.zodiacSign);
+  const symbol = zodiacSymbols[sign] || "✦";
+  const element = safe(report.element);
+  const modality = safe(report.modality);
+  const planet = safe(report.rulingPlanet);
+  const stone = safe(report.birthstone);
+  const lifePath = safe(report.lifePathNumber);
+  const previewInsight = report.corePersonality
+    ? String(report.corePersonality).replace(/ This is reflective content, not a fixed description of a person\./, "")
+    : "A symbolic birth-date reflection has been prepared for you.";
   return `<article class="report-preview teaser-preview edition-${escapeHtml(report.edition || selectedEdition)}">
-    <div class="report-cover-mini">
+    <div class="report-cover-mini premium-cover">
+      <div class="cover-stars">✦ &nbsp; ✧ &nbsp; ☾ &nbsp; ✦</div>
       <div class="edition-label">${escapeHtml(editionTitle)}</div>
       <p class="eyebrow">YOUR PERSONALIZED PREVIEW</p>
+      <div class="preview-zodiac-orb"><span>${symbol}</span></div>
       <span class="ai-badge">✦ AI-PERSONALIZED</span>
       <h3>${name}</h3>
       <p>${date}</p>
-      <p class="muted">${escapeHtml(safe(report.zodiacSign))} • A personal birth-date story</p>
+      <p class="cover-sign">${escapeHtml(sign)} <span>•</span> ${escapeHtml(element)}</p>
     </div>
+
     <section class="preview-teaser">
-      <h3>Your personalized report is ready ✨</h3>
-      <p>We've created a short glimpse of your ZodiaDaily edition. The complete report is intentionally kept behind checkout.</p>
-      <div class="locked-preview-grid">
-        <div><strong>✦ Your personal profile</strong><span>Unlock the deeper interpretation</span></div>
-        <div><strong>☾ AI-written reflection</strong><span>Unlock your personalized narrative</span></div>
-        <div><strong>▤ Birthday history</strong><span>Unlock research and date context</span></div>
-        <div><strong>🔒 Full keepsake PDF</strong><span>Unlock the complete designed edition</span></div>
+      <div class="preview-ready-row"><div><span class="section-kicker">YOUR BIRTH-DATE SNAPSHOT</span><h3>Here's your first glimpse ✨</h3></div><span class="preview-count">PREVIEW</span></div>
+      <div class="snapshot-grid">
+        <div><span>♈</span><small>Zodiac</small><strong>${escapeHtml(sign)}</strong></div>
+        <div><span>◈</span><small>Element</small><strong>${escapeHtml(element)}</strong></div>
+        <div><span>◌</span><small>Modality</small><strong>${escapeHtml(modality)}</strong></div>
+        <div><span>☼</span><small>Ruling planet</small><strong>${escapeHtml(planet)}</strong></div>
+        <div><span>◇</span><small>Birthstone</small><strong>${escapeHtml(stone)}</strong></div>
+        <div><span>№</span><small>Life-path</small><strong>${escapeHtml(lifePath)}</strong></div>
       </div>
-      <p class="preview-boundary"><strong>Free preview:</strong> You can see the report style and personalization before deciding whether to purchase.</p>
+
+      <div class="preview-insight">
+        <span class="insight-label">A SYMBOLIC FIRST IMPRESSION</span>
+        <p>${escapeHtml(previewInsight)}</p>
+      </div>
+
+      <div class="locked-preview-header"><span>✦</span><div><strong>Your complete edition goes deeper</strong><small>These sections are prepared for the full report.</small></div></div>
+      <div class="locked-preview-grid">
+        <div><strong>✦ Personal profile</strong><span>Deeper themes, strengths, growth and communication</span><b>🔒</b></div>
+        <div><strong>☾ AI-written reflection</strong><span>A longer narrative shaped around your birth date</span><b>🔒</b></div>
+        <div><strong>▤ Birthday history</strong><span>Historical events and notable birthday context</span><b>🔒</b></div>
+        <div><strong>📖 Full keepsake PDF</strong><span>All sections arranged in your designed edition</span><b>🔒</b></div>
+      </div>
+      <p class="preview-boundary"><strong>You're seeing the preview.</strong> The full report keeps the deeper interpretation and research inside the paid edition.</p>
       <p class="muted disclaimer">${escapeHtml(safe(report.note))}</p>
     </section>
   </article>`;
