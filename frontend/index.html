@@ -105,15 +105,26 @@
         <p class="micro-trust">Free preview • No account required • Your full edition unlocks after checkout</p>
       </form>
       <div id="report-result" class="result" hidden></div>
-      <div id="payment-panel" class="conditional-fields" hidden>
-        <h3>Purchase your full report</h3>
-        <p class="field-help">The preview is free to inspect. Pay through Shopify to unlock the verified PDF when payment setup is available.</p>
-        <button id="buy-report" type="button">Continue to secure Shopify checkout — $4</button>
-        <label for="customer-email">Checkout email</label>
+      <div id="payment-panel" class="conditional-fields premium-unlock-panel" hidden>
+        <div class="unlock-heading">
+          <span class="unlock-kicker">✦ YOUR REPORT IS READY</span>
+          <h3>Unlock the complete ZodiaDaily</h3>
+          <p class="field-help">Your preview shows the style and personalization. The $4 edition unlocks the full designed PDF.</p>
+        </div>
+        <div class="unlock-benefits">
+          <div><span>✦</span><strong>Personal profile</strong><small>Deeper birth-date interpretation</small></div>
+          <div><span>🤖</span><strong>AI reflection</strong><small>A narrative shaped around your details</small></div>
+          <div><span>📅</span><strong>Birthday context</strong><small>Research and date-based highlights</small></div>
+          <div><span>📖</span><strong>Premium PDF</strong><small>A polished keepsake to save</small></div>
+        </div>
+        <div class="unlock-price"><strong>$4 USD</strong><span>One personalized edition</span></div>
+        <label for="customer-email">Email for your Shopify checkout</label>
         <input id="customer-email" type="email" autocomplete="email" placeholder="you@example.com">
-        <div id="delivery-status" class="field-help" role="status">After checkout, return to this page. Your payment will be confirmed automatically.</div>
-        <button id="get-paid-pdf" type="button" class="secondary" hidden>Download my full report</button>
+        <button id="buy-report" type="button" class="unlock-button">Unlock my full report — $4</button>
+        <div id="delivery-status" class="field-help" role="status">Payment is processed by Shopify. After verified payment, your PDF unlocks automatically.</div>
+        <button id="get-paid-pdf" type="button" class="secondary download-button" hidden>📥 Download my full report</button>
         <p id="payment-status" class="field-help" role="status"></p>
+        <p class="checkout-note">🔒 Secure checkout through Shopify • No account required • Download appears after payment confirmation</p>
       </div>
     </section>
 
