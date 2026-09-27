@@ -14,7 +14,6 @@ const reportForm = $("#report-form");
 const compareForm = $("#compare-form");
 const reportResult = $("#report-result");
 const compareResult = $("#compare-result");
-const downloadButton = $("#download-pdf");
 const selectedEditionInput = $("#selectedEdition");
 const editionDescription = $("#edition-description");
 const secondPersonFields = $("#second-person-fields");
@@ -56,9 +55,29 @@ function narrativeHtml(report) { if (!report.aiNarrative) return ""; return `<se
 function extraHtml(report) { const gift = report.giftMessage ? `<section class="gift-message"><h3>A Birthday Message for You</h3><p>${escapeHtml(report.giftMessage)}</p><p><strong>From:</strong> ${escapeHtml(report.giftFrom || "Someone special")}</p></section>` : ""; const dedication = report.edition === "gift" ? `<section class="dedication-card"><h3>A Personal Dedication</h3><p>This keepsake was prepared especially for <strong>${escapeHtml(report.name)}</strong>.</p></section>` : ""; return `${dedication}${gift}${narrativeHtml(report)}`; }
 
 function reportHtml(report, heading = "") {
-  const aiBadge = report.aiGenerated ? '<span class="ai-badge">AI-PERSONALIZED</span>' : '<span class="ai-badge fallback">REFLECTION MODE</span>';
-  const editionTitle = EDITIONS[report.edition]?.title || EDITIONS[selectedEdition].title;
-  return `<article class="report-preview edition-${escapeHtml(report.edition || selectedEdition)}">${heading ? `<h3>${escapeHtml(heading)}</h3>` : ""}<div class="report-cover-mini"><div class="edition-label">${escapeHtml(editionTitle)}</div>${aiBadge}<img class="zodiac-image" src="${zodiacImage(report)}" alt="${escapeHtml(report.zodiacSign || "Zodiac")} zodiac illustration"><p class="eyebrow">PERSONALIZED BIRTH-DATE REPORT</p><h3>${escapeHtml(safe(report.name))}</h3><p>${escapeHtml(safe(report.formattedDate))} • ${escapeHtml(safe(report.zodiacSign))}</p></div>${extraHtml(report)}<h3>Birthday at a Glance</h3><div class="report-grid"><p><strong>Weekday:</strong> ${escapeHtml(safe(report.weekday))}</p><p><strong>Element:</strong> ${escapeHtml(safe(report.element))}</p><p><strong>Ruling planet:</strong> ${escapeHtml(safe(report.rulingPlanet))}</p><p><strong>Birthstone:</strong> ${escapeHtml(safe(report.birthstone))}</p><p><strong>Birth flower:</strong> ${escapeHtml(safe(report.birthFlower))}</p><p><strong>Life path:</strong> ${escapeHtml(safe(report.lifePathNumber))}</p><p><strong>Chinese zodiac:</strong> ${escapeHtml(safe(report.chineseZodiac))}</p><p><strong>Generation:</strong> ${escapeHtml(safe(report.generation))}</p></div><h3>Personality Reflection</h3><p>${escapeHtml(safe(report.corePersonality))}</p><div class="report-grid"><p><strong>Key traits:</strong> ${escapeHtml(safe(report.keyTraits))}</p><p><strong>Strengths:</strong> ${escapeHtml(safe(report.strengths))}</p><p><strong>Challenges:</strong> ${escapeHtml(safe(report.challenges))}</p><p><strong>Communication:</strong> ${escapeHtml(safe(report.communicationStyle))}</p></div><h3>Life Areas</h3><p><strong>Relationships:</strong> ${escapeHtml(safe(report.relationship))}</p><p><strong>Learning:</strong> ${escapeHtml(safe(report.learning))}</p><p><strong>Work and goals:</strong> ${escapeHtml(safe(report.workCareer))} ${escapeHtml(safe(report.goals))}</p><h3>Events Connected to Your Date</h3>${listHtml(report.historicalEvents)}<h3>People Born on Your Date</h3>${listHtml(report.famousBirths)}<h3>Birth-Year Profile</h3><p>${escapeHtml(safe(report.yearProfile))}</p>${report.yearProfileUrl ? `<p class="source-link"><a href="${escapeHtml(report.yearProfileUrl)}" target="_blank" rel="noopener noreferrer">View the reference source</a></p>` : ""}<h3>Your Personal Birthday Story</h3><p>${escapeHtml(safe(report.story))}</p><h3>Reflection Themes</h3><ul>${(report.themes || []).map(theme => `<li>${escapeHtml(theme)}</li>`).join("")}</ul><p class="muted disclaimer">${escapeHtml(safe(report.note))}</p></article>`;
+  const editionTitle = EDITIONS[report.edition || selectedEdition]?.title || "Personalized Birth-Date Report";
+  const name = escapeHtml(safe(report.name));
+  const date = escapeHtml(safe(report.formattedDate));
+  return `<article class="report-preview teaser-preview edition-${escapeHtml(report.edition || selectedEdition)}">
+    <div class="report-cover-mini">
+      <div class="edition-label">${escapeHtml(editionTitle)}</div>
+      <p class="eyebrow">YOUR PERSONALIZED PREVIEW</p>
+      <h3>${name}</h3>
+      <p>${date}</p>
+    </div>
+    <section class="preview-teaser">
+      <h3>Your personalized report is ready ✨</h3>
+      <p>We've prepared a personalized ZodiaDaily edition around this birth date.</p>
+      <p><strong>Unlock the full report</strong> to see the complete birth-date interpretation, personalized reflection, research context and edition-specific content.</p>
+      <ul>
+        <li>Personalized birth-date insights</li>
+        <li>AI-written reflection</li>
+        <li>Historical and birthday context</li>
+        <li>Additional content based on your selected edition</li>
+      </ul>
+      <p class="muted disclaimer">${escapeHtml(safe(report.note))}</p>
+    </section>
+  </article>`;
 }
 function couplesHtml(data) { return `<article class="report-preview edition-couples"><div class="report-cover-mini"><div class="edition-label">Couples / Two Birth Dates</div><h3>Two Personal Profiles</h3><p>${escapeHtml(safe(data.first.formattedDate))} and ${escapeHtml(safe(data.second.formattedDate))}</p></div>${reportHtml(data.first, "First Profile")}${reportHtml(data.second, "Second Profile")}<section class="ai-narrative"><h3>Shared Comparison</h3><ul>${(data.comparison || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></section></article>`; }
 function familyHtml(data) { return `<article class="report-preview edition-family"><div class="report-cover-mini"><div class="edition-label">Family Edition</div><h3>${escapeHtml(safe(data.familyName))}</h3><p>${escapeHtml(String((data.members || []).length))} individual profiles</p></div>${(data.members || []).map((member, i) => reportHtml(member, `Family Profile ${i + 1}`)).join("")}<p class="muted disclaimer">${escapeHtml(safe(data.note))}</p></article>`; }
@@ -70,8 +89,7 @@ $("#familyMembers").addEventListener("change", updateFamilyFields);
 async function readResponse(response) { const type = response.headers.get("content-type") || ""; const data = type.includes("application/json") ? await response.json() : { error: await response.text() }; if (!response.ok) throw new Error(data.error || `Request failed with status ${response.status}`); return data; }
 reportForm.addEventListener("submit", async event => { event.preventDefault(); latestReportInput = { name: $("#customerName").value.trim(), birthDate: $("#birthDate").value, edition: selectedEdition, secondName: $("#coupleSecondName").value.trim(), secondBirthDate: $("#coupleSecondBirthDate").value, familyName: $("#familyName").value.trim(), familyMembers: Number($("#familyMembers").value), familyProfiles: readFamilyProfiles(), giftFrom: $("#giftFrom").value.trim(), giftMessage: $("#giftMessage").value.trim() };
   try { validateBuilderInput(latestReportInput); } catch (error) { showMessage(reportResult, error.message, true); return; }
-  reportResult.hidden = false; reportResult.innerHTML = `<p>Generating your ${escapeHtml(EDITIONS[selectedEdition].title)}...</p>`; downloadButton.hidden = true; try { const response = await fetch(`${API_BASE}/api/reports/preview`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(latestReportInput) }); const data = await readResponse(response); reportResult.innerHTML = selectedEdition === "couples" && data.first ? couplesHtml(data) : selectedEdition === "family" && data.members ? familyHtml(data) : reportHtml(data); downloadButton.hidden = false; } catch (error) { showMessage(reportResult, `Unable to generate the report. ${error.message}`, true); } });
-downloadButton.addEventListener("click", async () => { if (!latestReportInput) return; downloadButton.disabled = true; downloadButton.textContent = "Preparing sample PDF..."; try { const response = await fetch(`${API_BASE}/api/reports/preview.pdf`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(latestReportInput) }); if (!response.ok) throw new Error(await response.text()); const blob = await response.blob(); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `zodiadaily-${selectedEdition}-sample.pdf`; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url); } catch (error) { showMessage(reportResult, `PDF generation failed: ${error.message}`, true); } finally { downloadButton.disabled = false; downloadButton.textContent = "Download 2-page sample PDF"; } });
+  reportResult.hidden = false; reportResult.innerHTML = `<p>Preparing your personalized preview...</p>`; try { const response = await fetch(`${API_BASE}/api/reports/preview`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(latestReportInput) }); const data = await readResponse(response); reportResult.innerHTML = selectedEdition === "couples" && data.first ? couplesHtml(data) : selectedEdition === "family" && data.members ? familyHtml(data) : reportHtml(data); const panel = document.querySelector("#payment-panel"); if (panel) panel.hidden = false; } catch (error) { showMessage(reportResult, `Unable to generate the report. ${error.message}`, true); } });
 compareForm.addEventListener("submit", async event => { event.preventDefault(); const payload = { name: $("#firstName").value.trim(), birthDate: $("#firstDate").value, secondName: $("#secondName").value.trim(), secondBirthDate: $("#secondDate").value, edition: "couples" }; compareResult.hidden = false; compareResult.innerHTML = "<p>Comparing dates...</p>"; try { const data = await readResponse(await fetch(`${API_BASE}/api/reports/preview`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })); compareResult.innerHTML = couplesHtml(data); } catch (error) { showMessage(compareResult, `Comparison failed: ${error.message}`, true); } });
 updateEditionForm();
 
@@ -81,7 +99,6 @@ if (clearButton) clearButton.addEventListener("click", () => {
   selectedEdition = "classic";
   updateEditionForm();
   reportResult.hidden = true;
-  downloadButton.hidden = true;
   paymentPanel.hidden = true;
   latestReportInput = null;
   setDateLimits();
