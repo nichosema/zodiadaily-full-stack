@@ -52,7 +52,7 @@ function listHtml(items = []) { if (!items.length) return '<p class="muted">No v
 function narrativeHtml(report) { if (!report.aiNarrative) return ""; return `<section class="ai-narrative"><h3>Your AI-Personalized Birthday Narrative</h3>${String(report.aiNarrative).split(/\n+/).filter(Boolean).map(p => `<p>${escapeHtml(p)}</p>`).join("")}</section>`; }
 function extraHtml(report) { const gift = report.giftMessage ? `<section class="gift-message"><h3>A Birthday Message for You</h3><p>${escapeHtml(report.giftMessage)}</p><p><strong>From:</strong> ${escapeHtml(report.giftFrom || "Someone special")}</p></section>` : ""; const dedication = report.edition === "gift" ? `<section class="dedication-card"><h3>A Personal Dedication</h3><p>This keepsake was prepared especially for <strong>${escapeHtml(report.name)}</strong>.</p></section>` : ""; return `${dedication}${gift}${narrativeHtml(report)}`; }
 
-function reportHtml(report, heading = "") {
+function reportHtml(report) {
   const editionTitle = EDITIONS[report.edition || selectedEdition]?.title || "Personalized Birth-Date Report";
   const name = escapeHtml(safe(report.name));
   const date = escapeHtml(safe(report.formattedDate));
@@ -60,19 +60,21 @@ function reportHtml(report, heading = "") {
     <div class="report-cover-mini">
       <div class="edition-label">${escapeHtml(editionTitle)}</div>
       <p class="eyebrow">YOUR PERSONALIZED PREVIEW</p>
+      <span class="ai-badge">✦ AI-PERSONALIZED</span>
       <h3>${name}</h3>
       <p>${date}</p>
+      <p class="muted">${escapeHtml(safe(report.zodiacSign))} • A personal birth-date story</p>
     </div>
     <section class="preview-teaser">
       <h3>Your personalized report is ready ✨</h3>
-      <p>We've prepared a personalized ZodiaDaily edition around this birth date.</p>
-      <p><strong>Unlock the full report</strong> to see the complete birth-date interpretation, personalized reflection, research context and edition-specific content.</p>
-      <ul>
-        <li>Personalized birth-date insights</li>
-        <li>AI-written reflection</li>
-        <li>Historical and birthday context</li>
-        <li>Additional content based on your selected edition</li>
-      </ul>
+      <p>We've created a short glimpse of your ZodiaDaily edition. The complete report is intentionally kept behind checkout.</p>
+      <div class="locked-preview-grid">
+        <div><strong>✦ Your personal profile</strong><span>Unlock the deeper interpretation</span></div>
+        <div><strong>☾ AI-written reflection</strong><span>Unlock your personalized narrative</span></div>
+        <div><strong>▤ Birthday history</strong><span>Unlock research and date context</span></div>
+        <div><strong>🔒 Full keepsake PDF</strong><span>Unlock the complete designed edition</span></div>
+      </div>
+      <p class="preview-boundary"><strong>Free preview:</strong> You can see the report style and personalization before deciding whether to purchase.</p>
       <p class="muted disclaimer">${escapeHtml(safe(report.note))}</p>
     </section>
   </article>`;
@@ -150,6 +152,8 @@ document.querySelectorAll(".journey-card").forEach(card => card.addEventListener
 $("#familyMembers").addEventListener("change", updateFamilyFields);
 async function readResponse(response) { const type = response.headers.get("content-type") || ""; const data = type.includes("application/json") ? await response.json() : { error: await response.text() }; if (!response.ok) throw new Error(data.error || `Request failed with status ${response.status}`); return data; }
 reportForm.addEventListener("submit", async event => { event.preventDefault(); latestReportInput = { name: $("#customerName").value.trim(), birthDate: $("#birthDate").value, edition: selectedEdition, secondName: $("#coupleSecondName").value.trim(), secondBirthDate: $("#coupleSecondBirthDate").value, familyName: $("#familyName").value.trim(), familyMembers: Number($("#familyMembers").value), familyProfiles: readFamilyProfiles(), giftFrom: $("#giftFrom").value.trim(), giftMessage: $("#giftMessage").value.trim() };
+  // A new preview must never inherit an older paid session.
+  if (typeof resetPurchaseState === "function") resetPurchaseState();
   try { validateBuilderInput(latestReportInput); } catch (error) { showMessage(reportResult, error.message, true); return; }
   reportResult.hidden = false; reportResult.innerHTML = `<p>Preparing your personalized preview...</p>`; try { const response = await fetch(`${API_BASE}/api/reports/preview`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(latestReportInput) }); const data = await readResponse(response); reportResult.innerHTML = selectedEdition === "couples" && data.first ? couplesHtml(data) : selectedEdition === "family" && data.members ? familyHtml(data) : reportHtml(data); const panel = document.querySelector("#payment-panel"); if (panel) panel.hidden = false; } catch (error) { showMessage(reportResult, `Unable to generate the report. ${error.message}`, true); } });
 updateEditionForm();
