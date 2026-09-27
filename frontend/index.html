@@ -12,7 +12,7 @@
 <body>
   <header class="site-header">
     <div class="brand">Birth<span>Date</span></div>
-    <nav aria-label="Primary"><a class="header-link" href="#how-it-works">How it works</a><a class="header-link" href="#compare">Compare</a><a class="header-link" href="#faq">FAQ</a></nav>
+    <nav aria-label="Primary"><a class="header-link" href="#how-it-works">How it works</a><a class="header-link" href="#builder">Compare</a><a class="header-link" href="#faq">FAQ</a></nav>
   </header>
 
   <main>
@@ -43,7 +43,7 @@
         <button type="button" class="edition-card selected" data-edition="classic"><span class="edition-icon">✦</span><strong>Classic Personal Discovery</strong><small>Balanced personal profile and reflection.</small></button>
         <button type="button" class="edition-card" data-edition="cosmic"><span class="edition-icon">☾</span><strong>Cosmic Edition</strong><small>Celestial themes and imaginative design.</small></button>
         <button type="button" class="edition-card" data-edition="story"><span class="edition-icon">▤</span><strong>Birthday Story Edition</strong><small>A narrative built around the birthday.</small></button>
-        <button type="button" class="edition-card" data-edition="couples"><span class="edition-icon">♡</span><strong>Couples / Two Birth Dates</strong><small>Two profiles and shared reflections.</small></button>
+        <button type="button" class="edition-card" data-edition="couples"><span class="edition-icon">♡</span><strong>Couples / Two Birth Dates</strong><small>Compare two birth dates with shared reflections.</small></button>
         <button type="button" class="edition-card" data-edition="family"><span class="edition-icon">♧</span><strong>Family Edition</strong><small>A keepsake for several family members.</small></button>
         <button type="button" class="edition-card" data-edition="gift"><span class="edition-icon">🎁</span><strong>Birthday Gift Edition</strong><small>A polished report with a dedication.</small></button>
       </div>
@@ -95,19 +95,6 @@
         <button id="get-paid-pdf" type="button" class="secondary" hidden>Download my full report</button>
         <p id="payment-status" class="field-help" role="status"></p>
       </div>
-    </section>
-
-    <section id="compare" class="panel">
-      <h2>Compare two birth dates</h2>
-      <p class="muted">This is a separate comparison tool. Use it only when you want to compare two people.</p>
-      <form id="compare-form">
-        <label for="firstName">First person's name</label><input id="firstName" type="text" maxlength="80" placeholder="First person" required>
-        <label for="firstDate">First person's birth date</label><input id="firstDate" type="date" required>
-        <label for="secondName">Second person's name</label><input id="secondName" type="text" maxlength="80" placeholder="Second person" required>
-        <label for="secondDate">Second person's birth date</label><input id="secondDate" type="date" required>
-        <button type="submit">Compare dates</button>
-      </form>
-      <div id="compare-result" class="result" hidden></div>
     </section>
 
     <section id="launch" class="launch-panel" aria-labelledby="launch-title">
