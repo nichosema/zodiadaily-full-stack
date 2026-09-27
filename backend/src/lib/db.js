@@ -21,12 +21,14 @@ export async function initializeDatabase() {
       product_matched boolean not null default false,
       email text not null default '',
       report_payload jsonb,
+      session_token text,
       created_at timestamptz not null default now(),
       updated_at timestamptz not null default now()
     )
   `;
 
   await sql`alter table shopify_orders add column if not exists report_payload jsonb`;
+  await sql`alter table shopify_orders add column if not exists session_token text`;
 
   await sql`
     create table if not exists purchase_sessions (
@@ -78,13 +80,14 @@ export async function savePaidOrder(order) {
 
   await initializeDatabase();
   await sql`
-    insert into shopify_orders (order_id, paid, product_matched, email, report_payload, created_at, updated_at)
-    values (${order.orderId}, ${order.paid}, ${order.productMatched}, ${order.email || ""}, ${order.reportPayload || null}, ${order.createdAt}, now())
+    insert into shopify_orders (order_id, paid, product_matched, email, report_payload, session_token, created_at, updated_at)
+    values (${order.orderId}, ${order.paid}, ${order.productMatched}, ${order.email || ""}, ${order.reportPayload || null}, ${order.sessionToken || null}, ${order.createdAt}, now())
     on conflict (order_id) do update set
       paid = excluded.paid,
       product_matched = excluded.product_matched,
       email = excluded.email,
       report_payload = coalesce(excluded.report_payload, shopify_orders.report_payload),
+      session_token = coalesce(excluded.session_token, shopify_orders.session_token),
       updated_at = now()
   `;
   return true;
@@ -101,6 +104,7 @@ export async function findPaidOrder(orderId) {
       product_matched as "productMatched",
       email,
       report_payload as "reportPayload",
+      session_token as "sessionToken",
       created_at as "createdAt"
     from shopify_orders
     where order_id = ${orderId}
