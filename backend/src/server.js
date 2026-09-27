@@ -6,7 +6,7 @@ import { buildReport, compareReports } from "./lib/report.js";
 import { addAiNarrative, addAiNarratives } from "./lib/ai.js";
 import { createPdf } from "./lib/pdf.js";
 import { verifyShopifyHmac, isPaidOrder, containsProduct } from "./lib/shopify.js";
-import { databaseConfigured, initializeDatabase, savePaidOrder, findPaidOrder, findPaidOrderBySessionToken, createPurchaseSession, findPurchaseSession, deletePurchaseSession } from "./lib/db.js";
+import { databaseConfigured, initializeDatabase, savePaidOrder, findPaidOrder, findPaidOrderBySessionToken, createPurchaseSession, findPurchaseSession, deletePurchaseSession, recordAnalyticsEvent } from "./lib/db.js";
 
 const app = express();
 app.disable("x-powered-by");
@@ -43,6 +43,22 @@ setInterval(() => {
 }, 60_000).unref();
 
 app.use(cors({ origin: config.frontendUrl === "*" ? true : config.frontendUrl, methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type", "X-Shopify-Hmac-Sha256"], maxAge: 600 }));
+app.post("/api/analytics/events", express.json({ limit: "4kb" }), async (req, res) => {
+  if (!allowRequest(req, "analytics-event", 30)) return res.status(429).json({ error: "Too many analytics events. Please wait a moment and try again." });
+  const allowedEvents = new Set(["preview_created", "checkout_started", "payment_confirmed", "pdf_downloaded"]);
+  const eventName = String(req.body?.event || "").trim();
+  const edition = String(req.body?.edition || "").trim();
+  if (!allowedEvents.has(eventName)) return res.status(400).json({ error: "Unsupported analytics event." });
+  if (edition.length > 40) return res.status(400).json({ error: "Invalid edition." });
+  try {
+    if (databaseConfigured()) await recordAnalyticsEvent(eventName, edition);
+    res.status(204).end();
+  } catch (error) {
+    console.error("Analytics event error:", error);
+    res.status(204).end();
+  }
+});
+
 app.get("/health", (_req, res) => res.json({
   ok: true,
   service: "zodiadaily-backend",
