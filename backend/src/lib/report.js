@@ -136,13 +136,44 @@ export async function buildReport(dateString, name = "", selectedYear = new Date
 }
 
 export async function compareReports(first, second) {
+  const sameSign = first.zodiacSign === second.zodiacSign;
+  const sameLifePath = first.lifePathNumber === second.lifePathNumber;
+  const sameElement = first.element === second.element;
+
   return {
-    first, second,
+    first,
+    second,
     comparison: [
-      first.zodiacSign === second.zodiacSign ? "Both dates share the same zodiac sign." : "The dates have different zodiac signs.",
-      first.lifePathNumber === second.lifePathNumber ? "Both dates share the same life-path number." : "The dates have different life-path numbers.",
-      first.element === second.element ? "Both profiles use the same traditional element." : "The profiles use different traditional elements.",
-      "Use this comparison as a reflective exercise rather than a scientific compatibility assessment."
+      {
+        label: "Zodiac sign",
+        first: first.zodiacSign || "Not available",
+        second: second.zodiacSign || "Not available",
+        shared: sameSign ? "Both dates share the same traditional zodiac sign." : "The dates use different traditional zodiac signs."
+      },
+      {
+        label: "Life-path number",
+        first: first.lifePathNumber || "Not available",
+        second: second.lifePathNumber || "Not available",
+        shared: sameLifePath ? "Both dates share the same life-path number." : "The dates use different life-path numbers."
+      },
+      {
+        label: "Element",
+        first: first.element || "Not available",
+        second: second.element || "Not available",
+        shared: sameElement ? "Both profiles use the same traditional element." : "The profiles use different traditional elements."
+      },
+      {
+        label: "Birth-year context",
+        first: first.year || "Not available",
+        second: second.year || "Not available",
+        shared: "Each person has their own birth-year context and life experience."
+      },
+      {
+        label: "Reflection",
+        first: "Individual strengths and themes",
+        second: "Individual strengths and themes",
+        shared: "Use differences and overlaps as conversation prompts, not predictions."
+      }
     ],
     note: "This comparison is reflective and entertainment-oriented. It does not measure scientific compatibility."
   };
