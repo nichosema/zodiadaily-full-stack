@@ -110,17 +110,17 @@ function reportHtml(report) {
 }
 function unlockHtml(edition, details = {}) {
   const configs = {
-    classic: { title: "Your full personal story is waiting", items: ["Deeper personal profile", "AI-written reflection", "Birthday history and research", "Complete designed PDF"] },
-    cosmic: { title: "Take your cosmic story further", items: ["Expanded celestial themes", "AI-written cosmic reflection", "Birthday and year context", "Complete cosmic PDF"] },
-    story: { title: "Your birthday story has more to tell", items: ["Full birthday narrative", "Personal symbolism", "Historical birthday context", "Complete story PDF"] },
-    couples: { title: "See the complete shared story", items: ["Both full personal profiles", "Shared comparison", "AI-written shared reflection", "Complete couples PDF"] },
-    family: { title: "Complete your family keepsake", items: ["All member profiles", "Family-focused reflections", "Birthday and historical context", "Complete family PDF"] },
-    gift: { title: "Turn this preview into a keepsake", items: ["Personal dedication", "Full birthday story", "AI-written reflection", "Complete gift PDF"] }
+    classic: { kicker: "✦ PERSONAL DISCOVERY", title: "Go deeper into your personal story", copy: "Your preview is the beginning. Unlock the complete profile for a richer birth-date keepsake.", items: ["Deeper personal profile", "AI-written reflection", "Birthday history and research", "Complete designed PDF"] },
+    cosmic: { kicker: "☾ COSMIC EDITION", title: "Explore the story behind your stars", copy: "Take the symbolic cosmic themes further with an expanded edition built around your birth date.", items: ["Expanded celestial themes", "AI-written cosmic reflection", "Birthday and year context", "Complete cosmic PDF"] },
+    story: { kicker: "▤ BIRTHDAY STORY", title: "Turn your birthday into a story", copy: "Unlock the narrative edition for a fuller birthday story, symbolism and historical context.", items: ["Full birthday narrative", "Personal symbolism", "Historical birthday context", "Complete story PDF"] },
+    couples: { kicker: "♡ TWO BIRTH DATES", title: "Explore the story between two dates", copy: "See both complete profiles together with a shared symbolic comparison and reflection.", items: ["Both full personal profiles", "Shared comparison", "AI-written shared reflection", "Complete couples PDF"] },
+    family: { kicker: "♧ FAMILY KEEPSAKE", title: "Bring the whole family story together", copy: "Unlock the complete family edition with deeper profiles and a keepsake built around everyone you selected.", items: ["All member profiles", "Family-focused reflections", "Birthday and historical context", "Complete family PDF"] },
+    gift: { kicker: "🎁 BIRTHDAY GIFT", title: "Give them a keepsake made for their date", copy: "Turn this preview into a thoughtful personalized birthday gift with a dedication, story and designed PDF.", items: ["Personal dedication", "Full birthday story", "AI-written reflection", "Complete gift PDF"] }
   };
   const config = configs[edition] || configs.classic;
   return `<section class="conversion-card">
     <div class="conversion-progress"><span><i></i></span><strong>Preview revealed</strong><em>Full edition locked</em></div>
-    <div class="conversion-copy"><span class="section-kicker">✦ COMPLETE YOUR ZODIADAILY</span><h3>${config.title}</h3><p>You've seen the personalized starting point. Unlock the complete edition to receive the deeper content and your designed PDF keepsake.</p></div>
+    <div class="conversion-copy"><span class="section-kicker">${config.kicker}</span><h3>${config.title}</h3><p>${config.copy}</p></div>
     <div class="conversion-items">${config.items.map(item => `<div><span>✓</span><strong>${escapeHtml(item)}</strong></div>`).join("")}</div>
     <div class="conversion-footer"><div><strong>$4 USD</strong><small>One personalized edition</small></div><a href="#payment-panel">Unlock my full report →</a></div>
   </section>`;
