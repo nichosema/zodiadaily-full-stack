@@ -6,7 +6,7 @@ import { buildReport, compareReports } from "./lib/report.js";
 import { addAiNarrative, addAiNarratives } from "./lib/ai.js";
 import { createPdf } from "./lib/pdf.js";
 import { verifyShopifyHmac, isPaidOrder, containsProduct } from "./lib/shopify.js";
-import { databaseConfigured, initializeDatabase, savePaidOrder, findPaidOrder, createPurchaseSession, findPurchaseSession, deletePurchaseSession } from "./lib/db.js";
+import { databaseConfigured, initializeDatabase, savePaidOrder, findPaidOrder, findPaidOrderBySessionToken, createPurchaseSession, findPurchaseSession, deletePurchaseSession } from "./lib/db.js";
 
 const app = express();
 const fallbackOrders = new Map();
@@ -175,6 +175,18 @@ app.post("/api/reports/preview.pdf", express.json({ limit: "32kb" }), async (req
   }
 });
 
+async function getOrderBySessionToken(sessionToken) {
+  if (!databaseConfigured() || !sessionToken) return null;
+  try {
+    await initializeDatabase();
+    const rows = await findPaidOrderBySessionToken(sessionToken);
+    return rows || null;
+  } catch (error) {
+    console.error("Session order lookup failed:", error);
+    return null;
+  }
+}
+
 async function getOrder(orderId) {
   if (databaseConfigured()) {
     try {
@@ -185,6 +197,36 @@ async function getOrder(orderId) {
   }
   return fallbackOrders.get(orderId) || null;
 }
+
+app.get("/api/purchase-sessions/:token/status", async (req, res) => {
+  if (!allowRequest(req, "purchase-session-status", 30)) return res.status(429).json({ error: "Too many status checks. Please wait a moment and try again." });
+  const token = String(req.params.token || "");
+  const order = await getOrderBySessionToken(token);
+  if (!order) return res.json({ found: false, paid: false, readyForDelivery: false });
+  res.json({
+    found: true,
+    paid: Boolean(order.paid),
+    productMatched: Boolean(order.productMatched),
+    readyForDelivery: Boolean(order.paid && order.productMatched && order.reportPayload),
+    createdAt: order.createdAt
+  });
+});
+
+app.post("/api/purchase-sessions/:token/report.pdf", express.json({ limit: "8kb" }), async (req, res) => {
+  if (!allowRequest(req, "session-paid-pdf", 5)) return res.status(429).json({ error: "Too many download attempts. Please wait a moment and try again." });
+  try {
+    const token = String(req.params.token || "");
+    const order = await getOrderBySessionToken(token);
+    if (!order || !order.paid || !order.productMatched || !order.reportPayload) {
+      return res.status(404).json({ error: "Your payment is still being confirmed. Please try again in a moment." });
+    }
+    const report = await makeReport(order.reportPayload);
+    await sendPdf(res, report, `zodiadaily-report.pdf`);
+  } catch (error) {
+    console.error("Session paid PDF error:", error);
+    res.status(400).json({ error: error.message });
+  }
+});
 
 app.post("/api/orders/:orderId/report.pdf", express.json({ limit: "32kb" }), async (req, res) => {
   if (!allowRequest(req, "paid-pdf", 5)) return res.status(429).json({ error: "Too many download attempts. Please wait a moment and try again." });
@@ -266,6 +308,7 @@ app.post("/webhooks/shopify/orders-create", express.raw({ type: "application/jso
     productMatched,
     email: order.email || order.contact_email || "",
     reportPayload,
+    sessionToken,
     createdAt: new Date().toISOString()
   };
 
