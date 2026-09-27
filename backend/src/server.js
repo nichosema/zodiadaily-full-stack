@@ -80,7 +80,15 @@ function previewProfile(report = {}, extra = {}) {
     name: report.name || "Your report",
     formattedDate: report.formattedDate || "",
     zodiacSign: report.zodiacSign || "",
+    element: report.element || "",
+    modality: report.modality || "",
+    rulingPlanet: report.rulingPlanet || "",
+    birthstone: report.birthstone || "",
+    lifePathNumber: report.lifePathNumber || "",
+    corePersonality: report.corePersonality || "",
     edition: report.edition || extra.edition || "classic",
+    giftFrom: report.giftFrom || "",
+    giftMessage: report.giftMessage || "",
     note: report.note || "Astrology, numerology and symbolic associations are presented for reflection or entertainment."
   };
 }
