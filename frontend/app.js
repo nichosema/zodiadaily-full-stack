@@ -106,6 +106,24 @@ function reportHtml(report) {
     </section>
   </article>`;
 }
+function unlockHtml(edition, details = {}) {
+  const configs = {
+    classic: { title: "Your full personal story is waiting", items: ["Deeper personal profile", "AI-written reflection", "Birthday history and research", "Complete designed PDF"] },
+    cosmic: { title: "Take your cosmic story further", items: ["Expanded celestial themes", "AI-written cosmic reflection", "Birthday and year context", "Complete cosmic PDF"] },
+    story: { title: "Your birthday story has more to tell", items: ["Full birthday narrative", "Personal symbolism", "Historical birthday context", "Complete story PDF"] },
+    couples: { title: "See the complete shared story", items: ["Both full personal profiles", "Shared comparison", "AI-written shared reflection", "Complete couples PDF"] },
+    family: { title: "Complete your family keepsake", items: ["All member profiles", "Family-focused reflections", "Birthday and historical context", "Complete family PDF"] },
+    gift: { title: "Turn this preview into a keepsake", items: ["Personal dedication", "Full birthday story", "AI-written reflection", "Complete gift PDF"] }
+  };
+  const config = configs[edition] || configs.classic;
+  return `<section class="conversion-card">
+    <div class="conversion-progress"><span><i></i></span><strong>Preview revealed</strong><em>Full edition locked</em></div>
+    <div class="conversion-copy"><span class="section-kicker">✦ COMPLETE YOUR ZODIADAILY</span><h3>${config.title}</h3><p>You've seen the personalized starting point. Unlock the complete edition to receive the deeper content and your designed PDF keepsake.</p></div>
+    <div class="conversion-items">${config.items.map(item => `<div><span>✓</span><strong>${escapeHtml(item)}</strong></div>`).join("")}</div>
+    <div class="conversion-footer"><div><strong>$4 USD</strong><small>One personalized edition</small></div><a href="#payment-panel">Unlock my full report →</a></div>
+  </section>`;
+}
+
 function couplesHtml(data) {
   const editionTitle = "Couples / Two Birth Dates";
   return `<article class="report-preview teaser-preview edition-couples">
