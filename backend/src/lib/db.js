@@ -114,6 +114,26 @@ export async function findPaidOrder(orderId) {
   return rows[0] || null;
 }
 
+export async function findPaidOrderBySessionToken(sessionToken) {
+  if (!sql || !sessionToken) return null;
+  await initializeDatabase();
+  const rows = await sql`
+    select
+      order_id as "orderId",
+      paid,
+      product_matched as "productMatched",
+      email,
+      report_payload as "reportPayload",
+      session_token as "sessionToken",
+      created_at as "createdAt"
+    from shopify_orders
+    where session_token = ${sessionToken}
+    order by created_at desc
+    limit 1
+  `;
+  return rows[0] || null;
+}
+
 export function databaseConfigured() {
   return Boolean(sql);
 }
