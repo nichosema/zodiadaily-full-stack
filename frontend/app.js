@@ -11,9 +11,7 @@ const EDITIONS = {
 
 const $ = selector => document.querySelector(selector);
 const reportForm = $("#report-form");
-const compareForm = $("#compare-form");
 const reportResult = $("#report-result");
-const compareResult = $("#compare-result");
 const selectedEditionInput = $("#selectedEdition");
 const editionDescription = $("#edition-description");
 const secondPersonFields = $("#second-person-fields");
@@ -114,14 +112,40 @@ function familyHtml(data) {
 }
 function updateFamilyFields() { const count = Math.max(2, Math.min(8, Number($("#familyMembers").value || 4))); familyProfileFields.innerHTML = Array.from({ length: count - 1 }, (_, i) => `<div class="conditional-fields"><strong>Additional Family Member ${i + 2}</strong><label for="familyName${i}">Name</label><input id="familyName${i}" type="text" maxlength="80"><label for="familyDate${i}">Birth date</label><input id="familyDate${i}" type="date"></div>`).join(""); }
 function readFamilyProfiles() { return Array.from(familyProfileFields.querySelectorAll(".conditional-fields")).map((_, i) => ({ name: $(`#familyName${i}`).value.trim(), birthDate: $(`#familyDate${i}`).value })).filter(m => m.name && m.birthDate); }
-function updateEditionForm() { selectedEditionInput.value = selectedEdition; editionDescription.textContent = EDITIONS[selectedEdition].description; document.querySelectorAll(".edition-card").forEach(card => card.classList.toggle("selected", card.dataset.edition === selectedEdition)); secondPersonFields.hidden = selectedEdition !== "couples"; familyFields.hidden = selectedEdition !== "family"; giftFields.hidden = selectedEdition !== "gift"; $("#coupleSecondName").required = selectedEdition === "couples"; $("#coupleSecondBirthDate").required = selectedEdition === "couples"; if (selectedEdition === "family" && !familyProfileFields.children.length) updateFamilyFields(); }
+function updateEditionForm() {
+  selectedEditionInput.value = selectedEdition;
+  editionDescription.textContent = EDITIONS[selectedEdition].description;
+  document.querySelectorAll(".edition-card").forEach(card => card.classList.toggle("selected", card.dataset.edition === selectedEdition));
+  secondPersonFields.hidden = selectedEdition !== "couples";
+  familyFields.hidden = selectedEdition !== "family";
+  giftFields.hidden = selectedEdition !== "gift";
+  $("#coupleSecondName").required = selectedEdition === "couples";
+  $("#coupleSecondBirthDate").required = selectedEdition === "couples";
+
+  const mainNameLabel = document.querySelector('label[for="customerName"]');
+  const mainDateLabel = document.querySelector('label[for="birthDate"]');
+  const secondNameLabel = document.querySelector('label[for="coupleSecondName"]');
+  const secondDateLabel = document.querySelector('label[for="coupleSecondBirthDate"]');
+  if (selectedEdition === "couples") {
+    if (mainNameLabel) mainNameLabel.textContent = "Person 1's name";
+    if (mainDateLabel) mainDateLabel.textContent = "Person 1's birth date";
+    if (secondNameLabel) secondNameLabel.textContent = "Person 2's name";
+    if (secondDateLabel) secondDateLabel.textContent = "Person 2's birth date";
+  } else {
+    if (mainNameLabel) mainNameLabel.textContent = "Main person's name";
+    if (mainDateLabel) mainDateLabel.textContent = "Main person's birth date";
+    if (secondNameLabel) secondNameLabel.textContent = "Second person's name";
+    if (secondDateLabel) secondDateLabel.textContent = "Second person's birth date";
+  }
+
+  if (selectedEdition === "family" && !familyProfileFields.children.length) updateFamilyFields();
+}
 document.querySelectorAll(".edition-card").forEach(card => card.addEventListener("click", () => { selectedEdition = card.dataset.edition; updateEditionForm(); }));
 $("#familyMembers").addEventListener("change", updateFamilyFields);
 async function readResponse(response) { const type = response.headers.get("content-type") || ""; const data = type.includes("application/json") ? await response.json() : { error: await response.text() }; if (!response.ok) throw new Error(data.error || `Request failed with status ${response.status}`); return data; }
 reportForm.addEventListener("submit", async event => { event.preventDefault(); latestReportInput = { name: $("#customerName").value.trim(), birthDate: $("#birthDate").value, edition: selectedEdition, secondName: $("#coupleSecondName").value.trim(), secondBirthDate: $("#coupleSecondBirthDate").value, familyName: $("#familyName").value.trim(), familyMembers: Number($("#familyMembers").value), familyProfiles: readFamilyProfiles(), giftFrom: $("#giftFrom").value.trim(), giftMessage: $("#giftMessage").value.trim() };
   try { validateBuilderInput(latestReportInput); } catch (error) { showMessage(reportResult, error.message, true); return; }
   reportResult.hidden = false; reportResult.innerHTML = `<p>Preparing your personalized preview...</p>`; try { const response = await fetch(`${API_BASE}/api/reports/preview`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(latestReportInput) }); const data = await readResponse(response); reportResult.innerHTML = selectedEdition === "couples" && data.first ? couplesHtml(data) : selectedEdition === "family" && data.members ? familyHtml(data) : reportHtml(data); const panel = document.querySelector("#payment-panel"); if (panel) panel.hidden = false; } catch (error) { showMessage(reportResult, `Unable to generate the report. ${error.message}`, true); } });
-compareForm.addEventListener("submit", async event => { event.preventDefault(); const payload = { name: $("#firstName").value.trim(), birthDate: $("#firstDate").value, secondName: $("#secondName").value.trim(), secondBirthDate: $("#secondDate").value, edition: "couples" }; compareResult.hidden = false; compareResult.innerHTML = "<p>Comparing dates...</p>"; try { const data = await readResponse(await fetch(`${API_BASE}/api/reports/preview`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })); compareResult.innerHTML = couplesHtml(data); } catch (error) { showMessage(compareResult, `Comparison failed: ${error.message}`, true); } });
 updateEditionForm();
 
 const clearButton = $("#clear-form");
