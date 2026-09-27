@@ -99,7 +99,7 @@ app.post("/api/purchase-sessions", express.json({ limit: "32kb" }), async (req, 
     const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
     if (databaseConfigured()) await createPurchaseSession(token, payload, expiresAt);
     else return res.status(503).json({ error: "Purchase preparation requires database storage." });
-    res.json({ checkoutUrl: buildShopifyCartUrl(token, payload.customerEmail), expiresAt });
+    res.json({ token, checkoutUrl: buildShopifyCartUrl(token, payload.customerEmail), expiresAt });
   } catch (error) {
     console.error("Purchase session error:", error);
     res.status(400).json({ error: error.message });
