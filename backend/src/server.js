@@ -233,20 +233,6 @@ async function sendPdf(res, report, filename) {
   res.send(pdf);
 }
 
-app.post("/api/reports/preview.pdf", express.json({ limit: "32kb" }), async (req, res) => {
-  if (!allowRequest(req, "preview-pdf", 6)) return res.status(429).json({ error: "Too many PDF preview requests. Please wait a moment and try again." });
-  try {
-    const report = await makeReport(req.body || {});
-    const pdf = await createPdf(report, { preview: true });
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", 'attachment; filename="zodiadaily-sample-preview.pdf"');
-    res.send(pdf);
-  } catch (error) {
-    console.error("PDF error:", error);
-    res.status(400).json({ error: error.message });
-  }
-});
-
 async function getOrderBySessionToken(sessionToken) {
   if (!databaseConfigured() || !sessionToken) return null;
   try {
@@ -298,36 +284,6 @@ app.post("/api/purchase-sessions/:token/report.pdf", express.json({ limit: "8kb"
     await sendPdf(res, report, `zodiadaily-report.pdf`);
   } catch (error) {
     console.error("Session paid PDF error:", error);
-    res.status(400).json({ error: error.message });
-  }
-});
-
-app.post("/api/orders/:orderId/report.pdf", express.json({ limit: "32kb" }), async (req, res) => {
-  if (!allowRequest(req, "paid-pdf", 5)) return res.status(429).json({ error: "Too many download attempts. Please wait a moment and try again." });
-  try {
-    const orderId = String(req.params.orderId || "");
-    const order = await getOrder(orderId);
-
-    if (!order) {
-      return res.status(404).json({ error: "Order has not been received by the payment webhook yet." });
-    }
-
-    if (!order.paid || !order.productMatched) {
-      return res.status(402).json({ error: "This order is not verified as a paid ZodiaDaily order." });
-    }
-
-    if (order.email) {
-      const providedEmail = String(req.body?.customerEmail || "").trim().toLowerCase();
-      if (!providedEmail || providedEmail !== String(order.email).trim().toLowerCase()) {
-        return res.status(403).json({ error: "Enter the same checkout email used for this order." });
-      }
-    }
-
-    const reportInput = order.reportPayload || req.body || {};
-    const report = await makeReport(reportInput);
-    await sendPdf(res, report, `zodiadaily-order-${orderId}.pdf`);
-  } catch (error) {
-    console.error("Paid PDF error:", error);
     res.status(400).json({ error: error.message });
   }
 });
