@@ -312,6 +312,7 @@ function renderFamily(doc, report) {
   }
 
   const closing = { ...lead, edition: "family" };
+  const totalPages = 3 + Math.ceil(members.length / 2);
   newPage(doc, closing, "Family Reflection", "A gentle ending for the keepsake");
   box(doc, closing, 42, 137, 511, 94, "Family lens",
     "Each profile is individual. The value of a family keepsake is in the stories and conversations it helps you share.");
@@ -321,11 +322,60 @@ function renderFamily(doc, report) {
     "Zodiac and numerology are symbolic traditions, not scientifically validated ways to measure personality, compatibility or destiny.");
   box(doc, closing, 42, 479, 511, 94, "Final message",
     "Keep the pages as a snapshot of a moment in your family story. People continue to grow and change.");
-  foot(doc, closing, "7");
+  foot(doc, closing, String(totalPages));
 }
 
 function renderGift(doc, report) {
-  renderSingle(doc, report);
+  const theme = themeFor(report);
+  cover(doc, report, "Birthday Gift Edition");
+
+  newPage(doc, report, "The Birthday Dedication", "A keepsake prepared especially for this birthday");
+  box(doc, report, 42, 137, 511, 70, "For", report.name);
+  box(doc, report, 42, 223, 250, 70, "Gift from", report.giftFrom || "Someone special");
+  box(doc, report, 303, 223, 250, 70, "Birthday", report.formattedDate);
+  box(doc, report, 42, 309, 511, 100, "Personal message", report.giftMessage || "A special birthday message, prepared with care.");
+  box(doc, report, 42, 429, 511, 92, "A symbolic birthday lens",
+    `Your birth date is traditionally associated with ${report.zodiacSign || "a zodiac sign"}, ${report.element || "an element"} and a range of cultural symbols. This is a reflective keepsake, not a prediction.`);
+  foot(doc, report, "2");
+
+  newPage(doc, report, "Your Birthday Profile", "The personal details behind the keepsake");
+  box(doc, report, 42, 137, 250, 58, "Zodiac sign", report.zodiacSign);
+  box(doc, report, 303, 137, 250, 58, "Element", report.element);
+  box(doc, report, 42, 207, 250, 58, "Birthstone", report.birthstone);
+  box(doc, report, 303, 207, 250, 58, "Birth flower", report.birthFlower);
+  box(doc, report, 42, 277, 250, 70, "Key traits", report.keyTraits);
+  box(doc, report, 303, 277, 250, 70, "Strengths", report.strengths);
+  box(doc, report, 42, 361, 511, 92, "Core personality reflection", report.corePersonality);
+  box(doc, report, 42, 467, 511, 92, "AI-personalized reflection", report.aiNarrative);
+  foot(doc, report, "3");
+
+  newPage(doc, report, "Birthday in History", "Context connected to the selected date");
+  box(doc, report, 42, 137, 511, 68, "Research note",
+    "Historical facts are included as context. They are separate from the symbolic interpretation in this keepsake.");
+  sectionTitle(doc, report, "Events connected to your date", 231);
+  bullets(doc, report, report.historicalEvents, 258);
+  sectionTitle(doc, report, "People born on your date", 410);
+  bullets(doc, report, report.famousBirths, 437);
+  foot(doc, report, "4");
+
+  newPage(doc, report, "The Story Behind the Date", "A reflective narrative for the birthday");
+  box(doc, report, 42, 137, 511, 100, `A beginning in ${report.year}`, report.story, 9);
+  box(doc, report, 42, 257, 511, 104, "AI-personalized birthday narrative", report.aiNarrative, 8.8);
+  box(doc, report, 42, 381, 511, 86, "A birthday prompt",
+    "What do you want this next chapter to be remembered for?");
+  box(doc, report, 42, 487, 511, 86, "A message to carry forward",
+    "Your birth date can inspire a story, but the meaning you give it is yours to create.");
+  foot(doc, report, "5");
+
+  newPage(doc, report, "A Keepsake to Remember", "The final page of your ZodiaDaily birthday gift");
+  box(doc, report, 42, 137, 511, 105, "Birthday message", report.giftMessage || "Wishing you a meaningful and memorable birthday.");
+  box(doc, report, 42, 263, 511, 92, "From", report.giftFrom || "Someone special");
+  box(doc, report, 42, 375, 511, 92, "Final reflection",
+    "Keep this report as a snapshot of this birthday — a collection of symbols, stories and a personal message made for one special date.");
+  t(doc, "Made with ZodiaDaily", 42, 535, 511, {
+    color: theme.accent, font: "Helvetica-Bold", size: 12, max: 40, align: "center"
+  });
+  foot(doc, report, "6");
 }
 
 export function createPdf(report, options = {}) {
