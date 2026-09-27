@@ -22,7 +22,7 @@ export function isPaidOrder(order) {
 
 function normalizeShopifyId(value, type) {
   return String(value || "")
-    .replace(new RegExp(\`^gid://shopify/\${type}/\`), "")
+    .replace(new RegExp("^gid://shopify/" + type + "/"), "")
     .trim();
 }
 
