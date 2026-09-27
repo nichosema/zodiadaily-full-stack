@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZodiaDaily — Personalized BirthDate Editions</title>
-  <meta name="description" content="Explore personalized symbolic birth-date reports, birthday keepsakes, and creative digital editions from ZodiaDaily.">
+  <title>ZodiaDaily — Personalized Zodiac Stories</title>
+  <meta name="description" content="Create a personalized ZodiaDaily story from a birth date, with symbolic insights, birthday context and AI-written reflections.">
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./form-design.css">
   <link rel="stylesheet" href="./launch.css">
 </head>
 <body>
   <header class="site-header">
-    <div class="brand">Birth<span>Date</span></div>
+    <div class="brand zodia-brand">Zodia<span>Daily</span></div>
     <nav aria-label="Primary"><a class="header-link" href="#how-it-works">How it works</a><a class="header-link" href="#builder">Compare</a><a class="header-link" href="#faq">FAQ</a></nav>
   </header>
 
@@ -48,21 +48,35 @@
         <button type="button" class="edition-card" data-edition="gift"><span class="edition-icon">🎁</span><strong>Birthday Gift Edition</strong><small>A polished report with a dedication.</small></button>
       </div>
 
-      <h2 class="form-heading">Create your report</h2>
-      <p id="edition-description" class="muted">A balanced personal report for discovery, reflection and birthday context.</p>
+      <div class="form-intro">
+        <span class="form-intro-kicker">✦ ZODIADAILY CREATOR</span>
+        <h2 class="form-heading">Create your ZodiaDaily</h2>
+        <p id="edition-description" class="muted">A balanced personal story for discovery, reflection and birthday context.</p>
+        <div class="form-progress" aria-label="ZodiaDaily creation steps">
+          <span class="active"><b>1</b> Details</span><i>→</i><span><b>2</b> Preview</span><i>→</i><span><b>3</b> Unlock</span>
+        </div>
+      </div>
       <form id="report-form">
         <input id="selectedEdition" type="hidden" value="classic">
-        <label for="customerName">Main person's name</label>
-        <input id="customerName" type="text" maxlength="80" placeholder="e.g. Alex Johnson" required>
-        <label for="birthDate">Main person's birth date</label>
-        <input id="birthDate" type="date" required>
 
-        <div id="second-person-fields" class="conditional-fields" hidden>
-          <label for="coupleSecondName">Second person's name</label>
-          <input id="coupleSecondName" type="text" maxlength="80" placeholder="e.g. Jordan Smith">
-          <label for="coupleSecondBirthDate">Second person's birth date</label>
-          <input id="coupleSecondBirthDate" type="date">
-          <p class="field-help">Complete this separate second-profile section. Do not enter both people in the first name field.</p>
+        <div class="profile-layout" id="profile-layout">
+          <div class="profile-card profile-card-primary">
+            <div class="profile-card-head"><span class="profile-avatar">✦</span><div><span class="profile-kicker" id="profile-one-kicker">PERSON 1</span><strong id="profile-one-title">Your profile</strong></div></div>
+            <label for="customerName">What's their name?</label>
+            <input id="customerName" type="text" maxlength="80" placeholder="Enter a name" required>
+            <label for="birthDate">When were they born?</label>
+            <div class="date-field"><span>📅</span><input id="birthDate" type="date" aria-label="Birth date" required></div>
+            <p class="field-help">This date shapes your personalized ZodiaDaily story.</p>
+          </div>
+
+          <div id="second-person-fields" class="profile-card profile-card-secondary" hidden>
+            <div class="profile-card-head"><span class="profile-avatar">♡</span><div><span class="profile-kicker">PERSON 2</span><strong>Second profile</strong></div></div>
+            <label for="coupleSecondName">What's their name?</label>
+            <input id="coupleSecondName" type="text" maxlength="80" placeholder="Enter a name">
+            <label for="coupleSecondBirthDate">When were they born?</label>
+            <div class="date-field"><span>📅</span><input id="coupleSecondBirthDate" type="date" aria-label="Second person's birth date"></div>
+            <p class="field-help">We'll create a shared reflection from both dates.</p>
+          </div>
         </div>
 
         <div id="family-fields" class="conditional-fields" hidden>
@@ -81,8 +95,8 @@
           <textarea id="giftMessage" rows="3" maxlength="500" placeholder="Write a short personal message"></textarea>
         </div>
 
-        <div class="form-actions"><button type="submit">Generate my free preview</button><button id="clear-form" type="button" class="secondary outline">Clear</button></div>
-        <p class="micro-trust">No account required • Preview first • Checkout is handled by Shopify when payments are enabled</p>
+        <div class="form-actions"><button type="submit">✨ Create My ZodiaDaily Preview</button><button id="clear-form" type="button" class="secondary outline">Clear</button></div>
+        <p class="micro-trust">Free preview • No account required • Your full edition unlocks after checkout</p>
       </form>
       <div id="report-result" class="result" hidden></div>
       <div id="payment-panel" class="conditional-fields" hidden>
