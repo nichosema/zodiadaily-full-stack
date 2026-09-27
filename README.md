@@ -71,3 +71,41 @@ This is still an MVP foundation. Test the complete flow in Shopify test mode bef
 4. Shopify sends the signed order webhook.
 5. Backend records the payment and product match.
 6. A future delivery layer will generate and securely deliver the purchased report.
+
+## Production backend deployment on Vercel
+
+The backend is now Vercel-compatible. Deploy the **`backend/` directory** as its own Vercel project.
+
+Set these Vercel environment variables for Production:
+
+- `FRONTEND_URL` = your live ZodiaDaily frontend URL
+- `DATABASE_URL` = your Supabase PostgreSQL connection string
+- `OPENAI_API_KEY` = your server-side AI key
+- `AI_BASE_URL` = `https://api.openai.com/v1`
+- `AI_MODEL` = your selected model
+- `SHOPIFY_STORE_DOMAIN` = `edbxvm-tj.myshopify.com`
+- `SHOPIFY_WEBHOOK_SECRET` = your existing Shopify webhook secret
+- `SHOPIFY_PRODUCT_ID` = `10307224895541`
+- `SHOPIFY_VARIANT_ID` = `50505266757685`
+
+After deployment, open the backend's `/health` URL and confirm `ok: true`, `databaseConfigured: true`, and `shopifyWebhookConfigured: true`.
+
+Then set the frontend's `ZODIADAILY_API_BASE` value to the new backend URL. The frontend already reads this value before falling back to the temporary Codespaces URL.
+
+For Shopify, keep the existing `orders/create` webhook and change its destination to:
+
+```
+https://YOUR-PRODUCTION-BACKEND-DOMAIN/webhooks/shopify/orders-create
+```
+
+Do not create a second webhook for the same event.
+
+### Production sequence
+
+1. Deploy `backend/` to Vercel.
+2. Add the production environment variables.
+3. Verify `/health`.
+4. Point the existing Shopify webhook at the production backend.
+5. Point the frontend at the production backend URL.
+6. Redeploy the frontend.
+7. Run the existing `npm run test:smoke` locally before enabling paid checkout.
