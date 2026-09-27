@@ -91,9 +91,8 @@
         <button id="buy-report" type="button">Continue to secure Shopify checkout — $4</button>
         <label for="customer-email">Checkout email</label>
         <input id="customer-email" type="email" autocomplete="email" placeholder="you@example.com">
-        <label for="order-id">After payment, enter your Shopify order ID</label>
-        <input id="order-id" type="text" inputmode="numeric" placeholder="e.g. 1234567890">
-        <button id="get-paid-pdf" type="button" class="secondary">Verify order and download paid PDF</button>
+        <div id="delivery-status" class="field-help" role="status">After checkout, return to this page. Your payment will be confirmed automatically.</div>
+        <button id="get-paid-pdf" type="button" class="secondary" hidden>Download my full report</button>
         <p id="payment-status" class="field-help" role="status"></p>
       </div>
     </section>
