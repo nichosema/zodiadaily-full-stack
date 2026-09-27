@@ -9,6 +9,19 @@ import { verifyShopifyHmac, isPaidOrder, containsProduct } from "./lib/shopify.j
 import { databaseConfigured, initializeDatabase, savePaidOrder, findPaidOrder, findPaidOrderBySessionToken, createPurchaseSession, findPurchaseSession, deletePurchaseSession } from "./lib/db.js";
 
 const app = express();
+app.disable("x-powered-by");
+app.set("trust proxy", 1);
+
+// Basic API security headers.
+app.use((_req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("Cache-Control", "no-store");
+  next();
+});
+
 const fallbackOrders = new Map();
 const requestBuckets = new Map();
 function allowRequest(req, key, limit = 12, windowMs = 60_000) {
@@ -29,7 +42,7 @@ setInterval(() => {
   for (const [key, bucket] of requestBuckets) if (bucket.started < cutoff) requestBuckets.delete(key);
 }, 60_000).unref();
 
-app.use(cors({ origin: config.frontendUrl === "*" ? true : config.frontendUrl }));
+app.use(cors({ origin: config.frontendUrl === "*" ? true : config.frontendUrl, methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type", "X-Shopify-Hmac-Sha256"], maxAge: 600 }));
 app.get("/health", (_req, res) => res.json({
   ok: true,
   service: "zodiadaily-backend",
@@ -258,8 +271,9 @@ async function getOrder(orderId) {
 }
 
 app.get("/api/purchase-sessions/:token/status", async (req, res) => {
-  if (!allowRequest(req, "purchase-session-status", 30)) return res.status(429).json({ error: "Too many status checks. Please wait a moment and try again." });
   const token = String(req.params.token || "");
+  if (token.length < 20 || token.length > 128) return res.status(400).json({ error: "Invalid purchase session." });
+  if (!allowRequest(req, "purchase-session-status", 30)) return res.status(429).json({ error: "Too many status checks. Please wait a moment and try again." });
   const order = await getOrderBySessionToken(token);
   if (!order) return res.json({ found: false, paid: false, readyForDelivery: false });
   res.json({
@@ -275,6 +289,7 @@ app.post("/api/purchase-sessions/:token/report.pdf", express.json({ limit: "8kb"
   if (!allowRequest(req, "session-paid-pdf", 5)) return res.status(429).json({ error: "Too many download attempts. Please wait a moment and try again." });
   try {
     const token = String(req.params.token || "");
+    if (token.length < 20 || token.length > 128) return res.status(400).json({ error: "Invalid purchase session." });
     const order = await getOrderBySessionToken(token);
     if (!order || !order.paid || !order.productMatched || !order.reportPayload) {
       return res.status(404).json({ error: "Your payment is still being confirmed. Please try again in a moment." });
