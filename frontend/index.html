@@ -12,29 +12,31 @@
 <body>
   <header class="site-header">
     <div class="brand">Birth<span>Date</span></div>
-    <nav><a class="header-link" href="#compare">Compare dates</a><a class="header-link" href="#launch">Launch updates</a></nav>
+    <nav aria-label="Primary"><a class="header-link" href="#how-it-works">How it works</a><a class="header-link" href="#compare">Compare</a><a class="header-link" href="#faq">FAQ</a></nav>
   </header>
 
   <main>
     <section class="hero">
       <p class="eyebrow">PERSONALIZED • CREATIVE • MADE FOR YOU</p>
       <h1>Choose a birth-date report made for your story.</h1>
-      <p class="hero-copy">Explore different report editions with their own purpose, tone and design. Start with a personal discovery report, a cosmic keepsake, a birthday story or a report for people you love.</p>
+      <p class="hero-copy">Turn a birth date into a polished digital keepsake with symbolic insights, birthday context, historical research and an AI-written reflection. Choose the edition that fits your story.</p>
+      <div class="hero-actions"><a class="hero-cta" href="#builder">Create my preview</a><a class="hero-secondary" href="#how-it-works">See how it works</a></div>
       <div class="price-pill">Personalized reports — $4 USD</div>
       <p class="field-help">ZodiaDaily reports are symbolic and intended for reflection and entertainment. They are not scientific assessments or guaranteed predictions.</p>
     </section>
 
-    <section class="launch-panel" aria-labelledby="benefits-title">
+    <section id="how-it-works" class="launch-panel" aria-labelledby="benefits-title">
       <span class="sample-badge">PREPARE YOUR PERSONAL EDITION</span>
       <h2 id="benefits-title">A digital keepsake made around a birth date</h2>
       <div class="launch-grid">
         <article class="launch-card"><h3>Personal discovery</h3><p>Explore symbolic themes, reflective prompts, and birth-date context.</p></article>
         <article class="launch-card"><h3>Gift-ready editions</h3><p>Create a keepsake concept for birthdays, friends, or family.</p></article>
-        <article class="launch-card"><h3>Digital delivery</h3><p>Preview the report online and prepare for secure paid PDF delivery after checkout is enabled.</p></article>
+        <article class="launch-card"><h3>AI-personalized</h3><p>Each edition gets an original reflection based on the report data and selected style.</p></article>
+        <article class="launch-card"><h3>Research context</h3><p>Historical date facts are retrieved when reference data is available, with clear boundaries around symbolic content.</p></article>
       </div>
     </section>
 
-    <section class="panel">
+    <section id="builder" class="panel builder-panel">
       <h2>Choose your edition</h2>
       <p class="muted">Select one edition first. The form will change its instructions, colors and extra fields automatically.</p>
       <div class="edition-grid" id="edition-grid">
@@ -79,10 +81,11 @@
           <textarea id="giftMessage" rows="3" maxlength="500" placeholder="Write a short personal message"></textarea>
         </div>
 
-        <button type="submit">Generate selected edition — $4</button>
+        <div class="form-actions"><button type="submit">Generate my free preview</button><button id="clear-form" type="button" class="secondary outline">Clear</button></div>
+        <p class="micro-trust">No account required • Preview first • Checkout is handled by Shopify when payments are enabled</p>
       </form>
       <div id="report-result" class="result" hidden></div>
-      <button id="download-pdf" class="secondary" hidden>Download full PDF preview</button>
+      <button id="download-pdf" class="secondary" hidden>Download 2-page sample PDF</button>
       <div id="payment-panel" class="conditional-fields" hidden>
         <h3>Purchase your full report</h3>
         <p class="field-help">The preview is free to inspect. Pay through Shopify to unlock the verified PDF when payment setup is available.</p>
@@ -116,11 +119,11 @@
         <article class="launch-card"><h3>Follow updates</h3><p>Share the official ZodiaDaily launch announcement when the payment process is ready.</p></article>
         <article class="launch-card"><h3>Stay informed</h3><p>Do not enter payment details until the official Shopify checkout is active.</p></article>
       </div>
-      <p class="launch-note">A server-backed email waitlist still needs a verified email provider and backend endpoint before it should be presented as an active subscription form.</p>
+      <p class="launch-note">Payment setup is intentionally separate from the report builder. The preview and content experience can be tested before checkout is enabled.</p>
     </section>
   </main>
 
-  <footer><p>© BirthDate / ZodiaDaily. Symbolic and entertainment content only.</p></footer>
+  <footer><p>© BirthDate / ZodiaDaily. Symbolic and entertainment content only.</p><p><a href="#faq">FAQ</a> · <a href="#how-it-works">How it works</a> · <a href="#builder">Create a preview</a></p></footer>
   <script src="./app.js"></script>
   <script src="./payment.js"></script>
   <script src="./form-design.js"></script>
