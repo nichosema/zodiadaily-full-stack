@@ -76,6 +76,31 @@ function box(doc, report, x, y, w, h, title, value, size = 8.2) {
 function sectionTitle(doc, report, value, y) {
   const theme = themeFor(report);
   t(doc, value, 42, y, 511, { color: theme.ink, font: "Helvetica-Bold", size: 11, max: 90 });
+  doc.save();
+  doc.strokeColor(theme.accent).lineWidth(1.5).moveTo(42, y + 17).lineTo(82, y + 17).stroke();
+  doc.restore();
+}
+
+function pill(doc, report, value, x, y, width = 110) {
+  const theme = themeFor(report);
+  doc.save();
+  doc.roundedRect(x, y, width, 22, 11).fillAndStroke(theme.soft, theme.line);
+  t(doc, value, x + 8, y + 7, width - 16, {
+    color: theme.ink, font: "Helvetica-Bold", size: 7, max: 40, align: "center"
+  });
+  doc.restore();
+}
+
+function callout(doc, report, title, value, y, h = 78) {
+  const theme = themeFor(report);
+  doc.save();
+  doc.roundedRect(42, y, 511, h, 10).fillAndStroke(theme.soft, theme.line);
+  doc.rect(42, y, 5, h).fill(theme.accent);
+  doc.restore();
+  t(doc, title, 62, y + 14, 471, {
+    color: theme.ink, font: "Helvetica-Bold", size: 9, max: 70
+  });
+  t(doc, value, 62, y + 34, 471, { color: theme.body, size: 8.5, max: h > 90 ? 500 : 320 });
 }
 
 function bullets(doc, report, values, y, limit = 5) {
@@ -101,6 +126,7 @@ function cover(doc, report, title = editionTitle(report.edition)) {
   doc.addPage({ size: "A4", margin: 0 });
   pageStart(doc, report);
 
+  pill(doc, report, "PERSONALIZED EDITION", 217, 104, 160);
   t(doc, "ZodiaDaily", 42, 145, 511, {
     color: theme.ink, font: "Helvetica-Bold", size: 31, max: 30, align: "center"
   });
@@ -134,6 +160,10 @@ function cover(doc, report, title = editionTitle(report.edition)) {
     t(doc, "YOUR DATE • YOUR SYMBOLS • YOUR STORY", 42, 510, 511, { color: theme.muted, size: 9, max: 70, align: "center" });
   }
 
+  t(doc, "PERSONAL • REFLECTIVE • DESIGNED TO KEEP", 42, 670, 511, {
+    color: theme.accent, font: "Helvetica-Bold", size: 7.5, max: 80, align: "center"
+  });
+
   if (report.edition === "gift" && report.giftMessage) {
     box(doc, report, 82, 560, 431, 86, "Gift message", report.giftMessage, 8.5);
   } else {
@@ -147,19 +177,21 @@ function renderSingle(doc, report) {
   cover(doc, report);
 
   newPage(doc, report, "Your Birthday at a Glance", "The key details connected to your selected birth date");
-  box(doc, report, 42, 137, 250, 58, "Name", report.name);
-  box(doc, report, 303, 137, 250, 58, "Date of birth", report.formattedDate);
-  box(doc, report, 42, 207, 250, 58, "Day of week", report.weekday);
-  box(doc, report, 303, 207, 250, 58, "Zodiac sign", report.zodiacSign);
-  box(doc, report, 42, 277, 250, 58, "Element", report.element);
-  box(doc, report, 303, 277, 250, 58, "Ruling planet", report.rulingPlanet);
-  box(doc, report, 42, 347, 250, 58, "Birthstone", report.birthstone);
-  box(doc, report, 303, 347, 250, 58, "Birth flower", report.birthFlower);
-  box(doc, report, 42, 417, 250, 58, "Life-path number", report.lifePathNumber);
-  box(doc, report, 303, 417, 250, 58, "Personal year", report.personalYear);
-  box(doc, report, 42, 487, 511, 82, "Calendar context",
+  pill(doc, report, "BIRTHDAY SNAPSHOT", 42, 126, 125);
+  pill(doc, report, report.zodiacSign || "ZODIAC", 418, 126, 135);
+  box(doc, report, 42, 160, 250, 58, "Name", report.name);
+  box(doc, report, 303, 160, 250, 58, "Date of birth", report.formattedDate);
+  box(doc, report, 42, 230, 250, 58, "Day of week", report.weekday);
+  box(doc, report, 303, 230, 250, 58, "Zodiac sign", report.zodiacSign);
+  box(doc, report, 42, 300, 250, 58, "Element", report.element);
+  box(doc, report, 303, 300, 250, 58, "Ruling planet", report.rulingPlanet);
+  box(doc, report, 42, 370, 250, 58, "Birthstone", report.birthstone);
+  box(doc, report, 303, 370, 250, 58, "Birth flower", report.birthFlower);
+  box(doc, report, 42, 440, 250, 58, "Life-path number", report.lifePathNumber);
+  box(doc, report, 303, 440, 250, 58, "Personal year", report.personalYear);
+  box(doc, report, 42, 510, 511, 82, "Calendar context",
     `Day ${report.dayOfYear} of the year • ${report.daysRemaining} days remaining • ${report.leapYear ? "Leap year" : "Common year"}.`);
-  t(doc, report.note, 42, 600, 511, { size: 8.5, max: 300 });
+  t(doc, report.note, 42, 610, 511, { size: 8.5, max: 300 });
   foot(doc, report, "2");
 
   newPage(doc, report, "Your Personality and Life Areas", "Symbolic interpretations for reflection, not fixed personality measurements");
@@ -202,8 +234,9 @@ function renderSingle(doc, report) {
 
   newPage(doc, report, edition === "story" ? "Your Birthday Story" : "Your Personal Birthday Story",
     "A reflective keepsake built from your birth date");
-  box(doc, report, 42, 137, 511, 92, `A beginning in ${report.year}`, report.story, 9);
-  if (report.aiNarrative) box(doc, report, 42, 247, 511, 104, "Your AI-personalized narrative", report.aiNarrative, 8.8);
+  pill(doc, report, edition === "story" ? "STORY EDITION" : "PERSONAL STORY", 42, 126, 125);
+  box(doc, report, 42, 160, 511, 92, `A beginning in ${report.year}`, report.story, 9);
+  if (report.aiNarrative) callout(doc, report, "AI-PERSONALIZED REFLECTION", report.aiNarrative, 270, 104);
   if (edition === "cosmic") {
     box(doc, report, 42, 371, 511, 76, "Cosmic lens",
       `${report.zodiacSign || "Your sign"} is traditionally associated with ${report.element || "an element"} and ${report.rulingPlanet || "a ruling planet"}.`);
@@ -330,7 +363,8 @@ function renderGift(doc, report) {
   cover(doc, report, "Birthday Gift Edition");
 
   newPage(doc, report, "The Birthday Dedication", "A keepsake prepared especially for this birthday");
-  box(doc, report, 42, 137, 511, 70, "For", report.name);
+  pill(doc, report, "MADE AS A GIFT", 42, 126, 105);
+  box(doc, report, 42, 160, 511, 70, "For", report.name);
   box(doc, report, 42, 223, 250, 70, "Gift from", report.giftFrom || "Someone special");
   box(doc, report, 303, 223, 250, 70, "Birthday", report.formattedDate);
   box(doc, report, 42, 309, 511, 100, "Personal message", report.giftMessage || "A special birthday message, prepared with care.");
