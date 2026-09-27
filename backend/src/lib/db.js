@@ -20,12 +20,56 @@ export async function initializeDatabase() {
       paid boolean not null default false,
       product_matched boolean not null default false,
       email text not null default '',
+      report_payload jsonb,
       created_at timestamptz not null default now(),
       updated_at timestamptz not null default now()
     )
   `;
 
+  await sql`alter table shopify_orders add column if not exists report_payload jsonb`;
+
+  await sql`
+    create table if not exists purchase_sessions (
+      token text primary key,
+      report_payload jsonb not null,
+      created_at timestamptz not null default now(),
+      expires_at timestamptz not null
+    )
+  `;
+
   initialized = true;
+  return true;
+}
+
+export async function createPurchaseSession(token, reportPayload, expiresAt) {
+  if (!sql) return false;
+  await initializeDatabase();
+  await sql`
+    insert into purchase_sessions (token, report_payload, expires_at)
+    values (${token}, ${reportPayload}, ${expiresAt})
+    on conflict (token) do update set
+      report_payload = excluded.report_payload,
+      expires_at = excluded.expires_at
+  `;
+  return true;
+}
+
+export async function findPurchaseSession(token) {
+  if (!sql) return null;
+  await initializeDatabase();
+  const rows = await sql`
+    select token, report_payload as "reportPayload", expires_at as "expiresAt"
+    from purchase_sessions
+    where token = ${token} and expires_at > now()
+    limit 1
+  `;
+  return rows[0] || null;
+}
+
+export async function deletePurchaseSession(token) {
+  if (!sql) return false;
+  await initializeDatabase();
+  await sql`delete from purchase_sessions where token = ${token}`;
   return true;
 }
 
@@ -34,12 +78,13 @@ export async function savePaidOrder(order) {
 
   await initializeDatabase();
   await sql`
-    insert into shopify_orders (order_id, paid, product_matched, email, created_at, updated_at)
-    values (${order.orderId}, ${order.paid}, ${order.productMatched}, ${order.email || ""}, ${order.createdAt}, now())
+    insert into shopify_orders (order_id, paid, product_matched, email, report_payload, created_at, updated_at)
+    values (${order.orderId}, ${order.paid}, ${order.productMatched}, ${order.email || ""}, ${order.reportPayload || null}, ${order.createdAt}, now())
     on conflict (order_id) do update set
       paid = excluded.paid,
       product_matched = excluded.product_matched,
       email = excluded.email,
+      report_payload = coalesce(excluded.report_payload, shopify_orders.report_payload),
       updated_at = now()
   `;
   return true;
@@ -55,6 +100,7 @@ export async function findPaidOrder(orderId) {
       paid,
       product_matched as "productMatched",
       email,
+      report_payload as "reportPayload",
       created_at as "createdAt"
     from shopify_orders
     where order_id = ${orderId}
