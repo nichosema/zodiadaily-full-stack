@@ -9,6 +9,24 @@ import { databaseConfigured, initializeDatabase, savePaidOrder, findPaidOrder } 
 
 const app = express();
 const fallbackOrders = new Map();
+const requestBuckets = new Map();
+function allowRequest(req, key, limit = 12, windowMs = 60_000) {
+  const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
+  const bucketKey = `${key}:${ip}`;
+  const now = Date.now();
+  const bucket = requestBuckets.get(bucketKey) || { started: now, count: 0 };
+  if (now - bucket.started > windowMs) {
+    bucket.started = now;
+    bucket.count = 0;
+  }
+  bucket.count += 1;
+  requestBuckets.set(bucketKey, bucket);
+  return bucket.count <= limit;
+}
+setInterval(() => {
+  const cutoff = Date.now() - 5 * 60_000;
+  for (const [key, bucket] of requestBuckets) if (bucket.started < cutoff) requestBuckets.delete(key);
+}, 60_000).unref();
 
 app.use(cors({ origin: config.frontendUrl === "*" ? true : config.frontendUrl }));
 app.get("/health", (_req, res) => res.json({
@@ -45,7 +63,8 @@ async function makeReport(payload = {}) {
   );
 }
 
-app.post("/api/reports/preview", express.json(), async (req, res) => {
+app.post("/api/reports/preview", express.json({ limit: "32kb" }), async (req, res) => {
+  if (!allowRequest(req, "preview")) return res.status(429).json({ error: "Too many preview requests. Please wait a moment and try again." });
   try {
     const {
       birthDate, name, secondBirthDate, secondName, selectedYear, edition,
@@ -99,10 +118,14 @@ async function sendPdf(res, report, filename) {
   res.send(pdf);
 }
 
-app.post("/api/reports/preview.pdf", express.json(), async (req, res) => {
+app.post("/api/reports/preview.pdf", express.json({ limit: "32kb" }), async (req, res) => {
+  if (!allowRequest(req, "preview-pdf", 6)) return res.status(429).json({ error: "Too many PDF preview requests. Please wait a moment and try again." });
   try {
     const report = await makeReport(req.body || {});
-    await sendPdf(res, report, "zodiadaily-preview-report.pdf");
+    const pdf = await createPdf(report, { preview: true });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", 'attachment; filename="zodiadaily-sample-preview.pdf"');
+    res.send(pdf);
   } catch (error) {
     console.error("PDF error:", error);
     res.status(400).json({ error: error.message });
@@ -120,7 +143,8 @@ async function getOrder(orderId) {
   return fallbackOrders.get(orderId) || null;
 }
 
-app.post("/api/orders/:orderId/report.pdf", express.json(), async (req, res) => {
+app.post("/api/orders/:orderId/report.pdf", express.json({ limit: "32kb" }), async (req, res) => {
+  if (!allowRequest(req, "paid-pdf", 5)) return res.status(429).json({ error: "Too many download attempts. Please wait a moment and try again." });
   try {
     const orderId = String(req.params.orderId || "");
     const order = await getOrder(orderId);
@@ -142,6 +166,7 @@ app.post("/api/orders/:orderId/report.pdf", express.json(), async (req, res) => 
 });
 
 app.get("/api/orders/:orderId/status", async (req, res) => {
+  if (!allowRequest(req, "order-status", 20)) return res.status(429).json({ error: "Too many status checks. Please wait a moment and try again." });
   const order = await getOrder(String(req.params.orderId));
   if (!order) return res.status(404).json({ found: false, message: "Order not found yet" });
   res.json({
