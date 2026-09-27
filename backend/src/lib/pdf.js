@@ -288,14 +288,14 @@ function renderFamily(doc, report) {
   box(doc, lead, 42, 231, 511, 84, "What is inside",
     `${members.length} birth-date profile${members.length === 1 ? "" : "s"} with symbolic zodiac, numerology and historical context.`);
   sectionTitle(doc, lead, "Family members", 345);
-  members.slice(0, 6).forEach((member, i) => {
+  members.slice(0, 8).forEach((member, i) => {
     box(doc, lead, 42 + (i % 2) * 261, 372 + Math.floor(i / 2) * 76, 250, 62,
       member.name || `Member ${i + 1}`, `${member.formattedDate || ""} • ${member.zodiacSign || ""}`);
   });
   foot(doc, lead, "2");
 
   let pageNo = 3;
-  for (let start = 0; start < members.length && pageNo <= 6; start += 2, pageNo++) {
+  for (let start = 0; start < members.length && pageNo <= 7; start += 2, pageNo++) {
     const pair = members.slice(start, start + 2);
     const base = pair[0] || lead;
     newPage(doc, base, `Family Profiles ${start + 1}–${Math.min(start + 2, members.length)}`, "Individual highlights for the selected family members");
