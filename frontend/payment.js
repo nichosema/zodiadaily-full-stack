@@ -18,6 +18,16 @@ function deliveryMessage(message, isError = false) {
   deliveryStatus.style.color = isError ? "#a33" : "";
 }
 
+function resetPurchaseState() {
+  activePurchaseToken = "";
+  localStorage.removeItem("zodia_purchase_token");
+  if (paymentPollTimer) clearInterval(paymentPollTimer);
+  paymentPollTimer = null;
+  getPaidPdfButton.hidden = true;
+  deliveryMessage("After checkout, return to this page. Your payment will be confirmed automatically.");
+  paymentMessage("");
+}
+
 async function checkPurchaseStatus() {
   if (!activePurchaseToken) return false;
   try {
@@ -120,3 +130,7 @@ if (originalReportSubmit) {
     paymentMessage("");
   });
 }
+
+
+const clearPaymentButton = document.querySelector("#clear-form");
+if (clearPaymentButton) clearPaymentButton.addEventListener("click", resetPurchaseState);
