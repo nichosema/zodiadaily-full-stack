@@ -31,6 +31,17 @@ export async function initializeDatabase() {
   await sql`alter table shopify_orders add column if not exists session_token text`;
 
   await sql`
+    create table if not exists analytics_events (
+      id bigserial primary key,
+      event_name text not null,
+      edition text not null default '',
+      created_at timestamptz not null default now()
+    )
+  `;
+  await sql`create index if not exists analytics_events_created_at_idx on analytics_events (created_at desc)`;
+  await sql`create index if not exists analytics_events_name_idx on analytics_events (event_name, created_at desc)`;
+
+  await sql`
     create table if not exists purchase_sessions (
       token text primary key,
       report_payload jsonb not null,
@@ -132,6 +143,16 @@ export async function findPaidOrderBySessionToken(sessionToken) {
     limit 1
   `;
   return rows[0] || null;
+}
+
+export async function recordAnalyticsEvent(eventName, edition = "") {
+  if (!sql) return false;
+  await initializeDatabase();
+  await sql`
+    insert into analytics_events (event_name, edition)
+    values (${String(eventName).slice(0, 80)}, ${String(edition).slice(0, 40)})
+  `;
+  return true;
 }
 
 export function databaseConfigured() {
