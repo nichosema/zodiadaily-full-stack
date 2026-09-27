@@ -93,6 +93,7 @@ function reportHtml(report) {
         <span class="insight-label">A SYMBOLIC FIRST IMPRESSION</span>
         <p>${escapeHtml(previewInsight)}</p>
       </div>
+      ${report.edition === "gift" ? `<div class="gift-preview-card"><span class="section-kicker">🎁 BIRTHDAY GIFT PREVIEW</span><h3>Prepared especially for ${name}</h3><p>${escapeHtml(report.giftMessage || "A personal birthday message will appear here in the complete gift edition.")}</p>${report.giftFrom ? `<small>From ${escapeHtml(report.giftFrom)}</small>` : ""}</div>` : ""}
 
       <div class="locked-preview-header"><span>✦</span><div><strong>Your complete edition goes deeper</strong><small>These sections are prepared for the full report.</small></div></div>
       <div class="locked-preview-grid">
