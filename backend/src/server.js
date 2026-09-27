@@ -74,6 +74,17 @@ function attachEdition(report, metadata = {}) {
   });
 }
 
+
+function previewProfile(report = {}, extra = {}) {
+  return {
+    name: report.name || "Your report",
+    formattedDate: report.formattedDate || "",
+    zodiacSign: report.zodiacSign || "",
+    edition: report.edition || extra.edition || "classic",
+    note: report.note || "Astrology, numerology and symbolic associations are presented for reflection or entertainment."
+  };
+}
+
 async function makeReport(payload = {}) {
   const { birthDate, name, selectedYear, edition, familyName, familyMembers, giftFrom, giftMessage } = payload;
   if (!birthDate) throw new Error("birthDate is required");
@@ -126,7 +137,7 @@ app.post("/api/reports/preview", express.json({ limit: "32kb" }), async (req, re
       const members = await addAiNarratives(rawMembers, { familyName, familyMembers });
       return res.json({
         familyName: familyName || "Family keepsake",
-        members,
+        members: members.map(member => previewProfile(member, { edition: "family" })),
         note: "Family profiles are symbolic and reflective, not scientific assessments."
       });
     }
@@ -144,10 +155,15 @@ app.post("/api/reports/preview", express.json({ limit: "32kb" }), async (req, re
         }),
         { firstName: name, secondName }
       );
-      return res.json(await compareReports(first, second));
+      const comparison = await compareReports(first, second);
+      return res.json({
+        first: previewProfile(comparison.first, { edition: "couples" }),
+        second: previewProfile(comparison.second, { edition: "couples" }),
+        note: comparison.note
+      });
     }
 
-    res.json(first);
+    res.json(previewProfile(first, { edition: edition || "classic" }));
   } catch (error) {
     console.error("Preview error:", error);
     res.status(400).json({ error: error.message });
