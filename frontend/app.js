@@ -103,6 +103,7 @@ function reportHtml(report) {
       </div>
       <p class="preview-boundary"><strong>You're seeing the preview.</strong> The full report keeps the deeper interpretation and research inside the paid edition.</p>
       <p class="muted disclaimer">${escapeHtml(safe(report.note))}</p>
+      ${unlockHtml(report.edition || selectedEdition)}
     </section>
   </article>`;
 }
@@ -138,6 +139,7 @@ function couplesHtml(data) {
       <p>The full report contains both personalized profiles plus a shared reflection.</p>
       <ul><li>Two birth-date profiles</li><li>Shared reflection</li><li>AI-written personalized content</li><li>Historical and birthday context</li></ul>
       <p class="muted disclaimer">Unlock the complete edition to read the full content.</p>
+      ${unlockHtml("couples")}
     </section>
   </article>`;
 }
@@ -154,6 +156,7 @@ function familyHtml(data) {
       <p>The full report contains personalized profiles for your selected family members and family-focused reflections.</p>
       <ul><li>Individual family profiles</li><li>Family-focused reflections</li><li>AI-written personalized content</li><li>Birthday and historical context</li></ul>
       <p class="muted disclaimer">Unlock the complete edition to read the full content.</p>
+      ${unlockHtml("family")}
     </section>
   </article>`;
 }
