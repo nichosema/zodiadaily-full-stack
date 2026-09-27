@@ -41,7 +41,7 @@ app.get("/health", (_req, res) => res.json({
 function safePurchasePayload(payload = {}) {
   const allowed = [
     "name", "birthDate", "edition", "secondName", "secondBirthDate",
-    "familyName", "familyMembers", "familyProfiles", "giftFrom", "giftMessage"
+    "familyName", "familyMembers", "familyProfiles", "giftFrom", "giftMessage", "customerEmail"
   ];
   const output = {};
   for (const key of allowed) if (payload[key] !== undefined) output[key] = payload[key];
@@ -53,12 +53,15 @@ function shopifyProperty(properties = [], targetName = "_zodia_session") {
   return item?.value ? String(item.value) : "";
 }
 
-function buildShopifyCartUrl(token) {
+function buildShopifyCartUrl(token, customerEmail = "") {
   const variantId = String(config.shopify.variantId || "").replace(/^gid:\/\/shopify\/ProductVariant\//, "");
   const shop = String(config.shopify.storeDomain || "").replace(/^https?:\/\//, "").replace(/\/$/, "");
   if (!variantId || !shop) throw new Error("Shopify product configuration is incomplete.");
   const encoded = Buffer.from(JSON.stringify({ _zodia_session: token }), "utf8").toString("base64url");
-  return `https://${shop}/cart/${variantId}:1?properties=${encoded}`;
+  const url = new URL(`https://${shop}/cart/${variantId}:1`);
+  url.searchParams.set("properties", encoded);
+  if (customerEmail) url.searchParams.set("checkout[email]", String(customerEmail).trim());
+  return url.toString();
 }
 
 function attachEdition(report, metadata = {}) {
@@ -96,7 +99,7 @@ app.post("/api/purchase-sessions", express.json({ limit: "32kb" }), async (req, 
     const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
     if (databaseConfigured()) await createPurchaseSession(token, payload, expiresAt);
     else return res.status(503).json({ error: "Purchase preparation requires database storage." });
-    res.json({ checkoutUrl: buildShopifyCartUrl(token), expiresAt });
+    res.json({ checkoutUrl: buildShopifyCartUrl(token, payload.customerEmail), expiresAt });
   } catch (error) {
     console.error("Purchase session error:", error);
     res.status(400).json({ error: error.message });
@@ -197,6 +200,13 @@ app.post("/api/orders/:orderId/report.pdf", express.json({ limit: "32kb" }), asy
       return res.status(402).json({ error: "This order is not verified as a paid ZodiaDaily order." });
     }
 
+    if (order.email) {
+      const providedEmail = String(req.body?.customerEmail || "").trim().toLowerCase();
+      if (!providedEmail || providedEmail !== String(order.email).trim().toLowerCase()) {
+        return res.status(403).json({ error: "Enter the same checkout email used for this order." });
+      }
+    }
+
     const reportInput = order.reportPayload || req.body || {};
     const report = await makeReport(reportInput);
     await sendPdf(res, report, `zodiadaily-order-${orderId}.pdf`);
@@ -216,7 +226,6 @@ app.get("/api/orders/:orderId/status", async (req, res) => {
     paid: order.paid,
     productMatched: order.productMatched,
     readyForDelivery: order.paid && order.productMatched,
-    email: order.email,
     createdAt: order.createdAt
   });
 });
