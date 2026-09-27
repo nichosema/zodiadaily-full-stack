@@ -1,4 +1,4 @@
-const SHOPIFY_CART_URL = "https://edbxvm-tj.myshopify.com/cart/50505266757685:1";
+const SHOPIFY_CART_URL = "https://edbxvm-tj.myshopify.com/cart/50505266757685:1"; // fallback only; personalized sessions are preferred
 const paymentPanel = document.querySelector("#payment-panel");
 const buyReportButton = document.querySelector("#buy-report");
 const getPaidPdfButton = document.querySelector("#get-paid-pdf");
@@ -10,13 +10,28 @@ function paymentMessage(message, isError = false) {
   paymentStatus.style.color = isError ? "#a33" : "";
 }
 
-buyReportButton.addEventListener("click", () => {
+buyReportButton.addEventListener("click", async () => {
   if (!latestReportInput) {
     paymentMessage("Generate your report preview first.", true);
     return;
   }
-  window.open(SHOPIFY_CART_URL, "_blank", "noopener,noreferrer");
-  paymentMessage("Shopify checkout opened. Complete payment, then enter the order ID shown by Shopify.");
+  buyReportButton.disabled = true;
+  paymentMessage("Preparing your personalized checkout...");
+  try {
+    const response = await fetch(`${API_BASE}/api/purchase-sessions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(latestReportInput)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || `Request failed with status ${response.status}`);
+    window.open(data.checkoutUrl || SHOPIFY_CART_URL, "_blank", "noopener,noreferrer");
+    paymentMessage("Your personalized Shopify checkout opened. Complete payment, then enter the order ID shown by Shopify.");
+  } catch (error) {
+    paymentMessage(`Could not prepare checkout: ${error.message}`, true);
+  } finally {
+    buyReportButton.disabled = false;
+  }
 });
 
 getPaidPdfButton.addEventListener("click", async () => {
