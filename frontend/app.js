@@ -142,6 +142,11 @@ function updateEditionForm() {
   if (selectedEdition === "family" && !familyProfileFields.children.length) updateFamilyFields();
 }
 document.querySelectorAll(".edition-card").forEach(card => card.addEventListener("click", () => { selectedEdition = card.dataset.edition; updateEditionForm(); }));
+document.querySelectorAll(".journey-card").forEach(card => card.addEventListener("click", () => {
+  selectedEdition = card.dataset.journey;
+  updateEditionForm();
+  document.querySelector("#builder")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}));
 $("#familyMembers").addEventListener("change", updateFamilyFields);
 async function readResponse(response) { const type = response.headers.get("content-type") || ""; const data = type.includes("application/json") ? await response.json() : { error: await response.text() }; if (!response.ok) throw new Error(data.error || `Request failed with status ${response.status}`); return data; }
 reportForm.addEventListener("submit", async event => { event.preventDefault(); latestReportInput = { name: $("#customerName").value.trim(), birthDate: $("#birthDate").value, edition: selectedEdition, secondName: $("#coupleSecondName").value.trim(), secondBirthDate: $("#coupleSecondBirthDate").value, familyName: $("#familyName").value.trim(), familyMembers: Number($("#familyMembers").value), familyProfiles: readFamilyProfiles(), giftFrom: $("#giftFrom").value.trim(), giftMessage: $("#giftMessage").value.trim() };
