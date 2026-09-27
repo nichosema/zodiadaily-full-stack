@@ -1,14 +1,47 @@
-const SHOPIFY_CART_URL = "https://edbxvm-tj.myshopify.com/cart/50505266757685:1"; // fallback only; personalized sessions are preferred
+const SHOPIFY_CART_URL = "https://edbxvm-tj.myshopify.com/cart/50505266757685:1";
 const paymentPanel = document.querySelector("#payment-panel");
 const buyReportButton = document.querySelector("#buy-report");
 const getPaidPdfButton = document.querySelector("#get-paid-pdf");
-const orderIdInput = document.querySelector("#order-id");
 const customerEmailInput = document.querySelector("#customer-email");
 const paymentStatus = document.querySelector("#payment-status");
+const deliveryStatus = document.querySelector("#delivery-status");
+let activePurchaseToken = localStorage.getItem("zodia_purchase_token") || "";
+let paymentPollTimer = null;
 
 function paymentMessage(message, isError = false) {
   paymentStatus.textContent = message;
   paymentStatus.style.color = isError ? "#a33" : "";
+}
+
+function deliveryMessage(message, isError = false) {
+  deliveryStatus.textContent = message;
+  deliveryStatus.style.color = isError ? "#a33" : "";
+}
+
+async function checkPurchaseStatus() {
+  if (!activePurchaseToken) return false;
+  try {
+    const response = await fetch(`${API_BASE}/api/purchase-sessions/${encodeURIComponent(activePurchaseToken)}/status`);
+    const data = await response.json();
+    if (data.readyForDelivery) {
+      deliveryMessage("Payment confirmed. Your full report is ready.");
+      getPaidPdfButton.hidden = false;
+      return true;
+    }
+    deliveryMessage("Waiting for Shopify to confirm your payment...");
+  } catch {
+    deliveryMessage("Still checking your payment...");
+  }
+  return false;
+}
+
+function startPurchasePolling() {
+  if (paymentPollTimer) clearInterval(paymentPollTimer);
+  checkPurchaseStatus();
+  paymentPollTimer = setInterval(async () => {
+    const ready = await checkPurchaseStatus();
+    if (ready) clearInterval(paymentPollTimer);
+  }, 3000);
 }
 
 buyReportButton.addEventListener("click", async () => {
@@ -32,8 +65,11 @@ buyReportButton.addEventListener("click", async () => {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || `Request failed with status ${response.status}`);
+    activePurchaseToken = data.token;
+    localStorage.setItem("zodia_purchase_token", activePurchaseToken);
     window.open(data.checkoutUrl || SHOPIFY_CART_URL, "_blank", "noopener,noreferrer");
-    paymentMessage("Your personalized Shopify checkout opened. Complete payment, then enter the order ID shown by Shopify.");
+    paymentMessage("Checkout opened. Complete payment, then return to this page. Your report will unlock automatically.");
+    startPurchasePolling();
   } catch (error) {
     paymentMessage(`Could not prepare checkout: ${error.message}`, true);
   } finally {
@@ -42,29 +78,16 @@ buyReportButton.addEventListener("click", async () => {
 });
 
 getPaidPdfButton.addEventListener("click", async () => {
-  const orderId = orderIdInput.value.trim();
-  if (!orderId) {
-    paymentMessage("Enter your Shopify order ID first.", true);
+  if (!activePurchaseToken) {
+    paymentMessage("Your purchase session is not available. Please start checkout again.", true);
     return;
   }
-  if (!latestReportInput) {
-    paymentMessage("Generate your report preview first so the order uses the correct details.", true);
-    return;
-  }
-  const customerEmail = customerEmailInput?.value.trim() || "";
-  if (!/^\S+@\S+\.\S+$/.test(customerEmail)) {
-    paymentMessage("Enter the same checkout email before verifying the order.", true);
-    return;
-  }
-  latestReportInput.customerEmail = customerEmail;
-
   getPaidPdfButton.disabled = true;
-  paymentMessage("Checking your order...");
+  paymentMessage("Preparing your full report...");
   try {
-    const response = await fetch(`${API_BASE}/api/orders/${encodeURIComponent(orderId)}/report.pdf`, {
+    const response = await fetch(`${API_BASE}/api/purchase-sessions/${encodeURIComponent(activePurchaseToken)}/report.pdf`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(latestReportInput)
+      headers: { "Content-Type": "application/json" }
     });
     if (!response.ok) {
       let message = await response.text();
@@ -75,18 +98,20 @@ getPaidPdfButton.addEventListener("click", async () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `zodiadaily-paid-${orderId}.pdf`;
+    link.download = "zodiadaily-full-report.pdf";
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    paymentMessage("Order verified. Your paid PDF download has started.");
+    paymentMessage("Your full personalized PDF is ready.");
   } catch (error) {
-    paymentMessage(`Verification failed: ${error.message}`, true);
+    paymentMessage(`Download failed: ${error.message}`, true);
   } finally {
     getPaidPdfButton.disabled = false;
   }
 });
+
+if (activePurchaseToken) startPurchasePolling();
 
 const originalReportSubmit = reportForm;
 if (originalReportSubmit) {
