@@ -3,6 +3,7 @@ const paymentPanel = document.querySelector("#payment-panel");
 const buyReportButton = document.querySelector("#buy-report");
 const getPaidPdfButton = document.querySelector("#get-paid-pdf");
 const orderIdInput = document.querySelector("#order-id");
+const customerEmailInput = document.querySelector("#customer-email");
 const paymentStatus = document.querySelector("#payment-status");
 
 function paymentMessage(message, isError = false) {
@@ -15,6 +16,12 @@ buyReportButton.addEventListener("click", async () => {
     paymentMessage("Generate your report preview first.", true);
     return;
   }
+  const customerEmail = customerEmailInput?.value.trim() || "";
+  if (!/^\S+@\S+\.\S+$/.test(customerEmail)) {
+    paymentMessage("Enter the email address you will use at Shopify checkout.", true);
+    return;
+  }
+  latestReportInput.customerEmail = customerEmail;
   buyReportButton.disabled = true;
   paymentMessage("Preparing your personalized checkout...");
   try {
@@ -44,6 +51,12 @@ getPaidPdfButton.addEventListener("click", async () => {
     paymentMessage("Generate your report preview first so the order uses the correct details.", true);
     return;
   }
+  const customerEmail = customerEmailInput?.value.trim() || "";
+  if (!/^\S+@\S+\.\S+$/.test(customerEmail)) {
+    paymentMessage("Enter the same checkout email before verifying the order.", true);
+    return;
+  }
+  latestReportInput.customerEmail = customerEmail;
 
   getPaidPdfButton.disabled = true;
   paymentMessage("Checking your order...");
