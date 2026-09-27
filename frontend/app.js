@@ -125,37 +125,78 @@ function unlockHtml(edition, details = {}) {
   </section>`;
 }
 
+function miniProfileCard(profile, label) {
+  const sign = safe(profile?.zodiacSign);
+  const symbol = zodiacSymbols[sign] || "✦";
+  return `<div class="mini-profile-card">
+    <div class="mini-profile-symbol">${symbol}</div>
+    <div class="mini-profile-copy"><span>${escapeHtml(label)}</span><strong>${escapeHtml(safe(profile?.name))}</strong><small>${escapeHtml(safe(profile?.formattedDate))}</small></div>
+    <div class="mini-profile-meta"><b>${escapeHtml(sign)}</b><small>${escapeHtml(safe(profile?.element))} • Life-path ${escapeHtml(safe(profile?.lifePathNumber))}</small></div>
+  </div>`;
+}
 function couplesHtml(data) {
-  const editionTitle = "Couples / Two Birth Dates";
+  const first = data.first || {};
+  const second = data.second || {};
+  const sameSign = first.zodiacSign && first.zodiacSign === second.zodiacSign;
+  const sameElement = first.element && first.element === second.element;
   return `<article class="report-preview teaser-preview edition-couples">
-    <div class="report-cover-mini">
-      <div class="edition-label">${editionTitle}</div>
+    <div class="report-cover-mini premium-cover">
+      <div class="cover-stars">✦ &nbsp; ✧ &nbsp; ☾ &nbsp; ✦</div>
+      <div class="edition-label">Couples / Two Birth Dates</div>
       <p class="eyebrow">YOUR PERSONALIZED PREVIEW</p>
-      <h3>Two personalized profiles</h3>
-      <p>${escapeHtml(safe(data.first?.formattedDate))} • ${escapeHtml(safe(data.second?.formattedDate))}</p>
+      <div class="preview-zodiac-orb"><span>♡</span></div>
+      <span class="ai-badge">✦ AI-PERSONALIZED</span>
+      <h3>${escapeHtml(safe(first.name))} <span>+</span> ${escapeHtml(safe(second.name))}</h3>
+      <p>${escapeHtml(safe(first.formattedDate))} • ${escapeHtml(safe(second.formattedDate))}</p>
     </div>
     <section class="preview-teaser">
-      <h3>Your couples edition is ready ✨</h3>
-      <p>The full report contains both personalized profiles plus a shared reflection.</p>
-      <ul><li>Two birth-date profiles</li><li>Shared reflection</li><li>AI-written personalized content</li><li>Historical and birthday context</li></ul>
-      <p class="muted disclaimer">Unlock the complete edition to read the full content.</p>
+      <div class="preview-ready-row"><div><span class="section-kicker">YOUR TWO BIRTH-DATE SNAPSHOT</span><h3>Both profiles are ready ✨</h3></div><span class="preview-count">PREVIEW</span></div>
+      <div class="couples-mini-profiles">${miniProfileCard(first, "PERSON 1")}${miniProfileCard(second, "PERSON 2")}</div>
+      <div class="preview-insight">
+        <span class="insight-label">A SHARED STARTING POINT</span>
+        <p>${sameSign ? "You share the same zodiac sign." : sameElement ? "Your zodiac signs are different, with a shared element." : "Your zodiac signs and elements create a distinct two-person starting point."} The complete edition explores the deeper symbolic comparison.</p>
+      </div>
+      <div class="locked-preview-grid">
+        <div><strong>✦ Full profile for ${escapeHtml(safe(first.name))}</strong><span>Deeper personal themes and reflection</span><b>🔒</b></div>
+        <div><strong>✦ Full profile for ${escapeHtml(safe(second.name))}</strong><span>Deeper personal themes and reflection</span><b>🔒</b></div>
+        <div><strong>♡ Shared comparison</strong><span>Side-by-side symbolic themes and shared reflection</span><b>🔒</b></div>
+        <div><strong>📖 Complete couples PDF</strong><span>Both profiles and the full shared story</span><b>🔒</b></div>
+      </div>
+      <p class="muted disclaimer">${escapeHtml(safe(data.note))}</p>
       ${unlockHtml("couples")}
     </section>
   </article>`;
 }
 function familyHtml(data) {
+  const members = Array.isArray(data.members) ? data.members : [];
   return `<article class="report-preview teaser-preview edition-family">
-    <div class="report-cover-mini">
+    <div class="report-cover-mini premium-cover">
+      <div class="cover-stars">✦ &nbsp; ✧ &nbsp; ☾ &nbsp; ✦</div>
       <div class="edition-label">Family Edition</div>
       <p class="eyebrow">YOUR PERSONALIZED PREVIEW</p>
+      <span class="ai-badge">✦ AI-PERSONALIZED</span>
       <h3>${escapeHtml(safe(data.familyName))}</h3>
-      <p>${escapeHtml(String((data.members || []).length))} personalized profiles prepared</p>
+      <p>${escapeHtml(String(members.length))} family profiles prepared</p>
     </div>
     <section class="preview-teaser">
-      <h3>Your family edition is ready ✨</h3>
-      <p>The full report contains personalized profiles for your selected family members and family-focused reflections.</p>
-      <ul><li>Individual family profiles</li><li>Family-focused reflections</li><li>AI-written personalized content</li><li>Birthday and historical context</li></ul>
-      <p class="muted disclaimer">Unlock the complete edition to read the full content.</p>
+      <div class="preview-ready-row"><div><span class="section-kicker">YOUR FAMILY SNAPSHOT</span><h3>Meet your family constellation ✨</h3></div><span class="preview-count">PREVIEW</span></div>
+      <div class="family-mini-grid">
+        ${members.map((member, index) => {
+          const sign = safe(member.zodiacSign);
+          return `<div class="family-mini-card"><span>${zodiacSymbols[sign] || "✦"}</span><div><small>MEMBER ${index + 1}</small><strong>${escapeHtml(safe(member.name))}</strong><em>${escapeHtml(sign)} • ${escapeHtml(safe(member.element))}</em></div></div>`;
+        }).join("")}
+      </div>
+      <div class="preview-insight">
+        <span class="insight-label">A FAMILY STARTING POINT</span>
+        <p>Your selected family members are already mapped into the preview. The complete keepsake expands each profile and brings their themes together.</p>
+      </div>
+      <div class="locked-preview-grid">
+        <div><strong>✦ Individual profiles</strong><span>Deeper themes for every family member</span><b>🔒</b></div>
+        <div><strong>☾ Family reflections</strong><span>AI-written family-focused content</span><b>🔒</b></div>
+        <div><strong>▤ Birthday context</strong><span>Birthday and historical context for the family</span><b>🔒</b></div>
+        <div><strong>📖 Complete family PDF</strong><span>All selected profiles arranged as one keepsake</span><b>🔒</b></div>
+      </div>
+      <p class="muted disclaimer">${escapeHtml(safe(data.note))}</p>
       ${unlockHtml("family")}
     </section>
   </article>`;
