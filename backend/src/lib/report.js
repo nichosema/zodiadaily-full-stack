@@ -131,6 +131,20 @@ export async function buildReport(dateString, name = "", selectedYear = new Date
     yearProfile: yearResearch.extract || `Your birth year is ${year}. A research snapshot can be added when reference data is available.`, yearProfileUrl: yearResearch.url,
     story: `Born on ${formattedDate}, ${cleanName}'s date sits within a particular point in calendar history. Symbols and context can inspire reflection, but choices, relationships, learning and lived experiences shape a person's story.`,
     themes: ["Confidence", "Personal growth", "Meaningful connections", "Making an impact", "Balance", "Lifelong learning"],
+    reflectionPrompts: [
+      "What part of your " + zodiac.name + " reflection feels most familiar, and what would you describe differently?",
+      "Which strength connected with " + zodiac.name + " would you like to practise more intentionally?",
+      "What is one small goal you could take action on during the next seven days?",
+      "Which relationship, lesson or experience are you especially grateful for right now?",
+      "If you could write one sentence about the chapter ahead, what would you want it to say?"
+    ],
+    symbolicSnapshot: [
+      { label: "Zodiac", value: zodiac.name },
+      { label: "Element", value: zodiac.element },
+      { label: "Modality", value: zodiac.modality },
+      { label: "Ruling planet", value: zodiac.planet },
+      { label: "Life path", value: lifePath(dateString) }
+    ],
     note: "Astrology, numerology, colors, birthstones and cultural symbols are presented for reflection or entertainment. They are not scientifically validated measurements or predictions. Historical and birth-date facts are retrieved from Wikimedia when available."
   };
 }
