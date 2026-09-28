@@ -1,4 +1,4 @@
-const BACKEND = "https://zodiadaily-full-stack-backend-oabjm3e2y-azume2.vercel.app";
+const BACKEND = "https://zodiadaily-full-stack-backend-r2k3-dc46zpf45-azume2.vercel.app";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
