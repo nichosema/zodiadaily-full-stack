@@ -1,2 +1,3 @@
 User-agent: *
 Allow: /
+Sitemap: https://zodiadaily-full-stack-backend-bc5w-61vpbrayf-azume2.vercel.app/sitemap.xml
