@@ -35,19 +35,38 @@ function compactReport(report) {
   return {
     name: report.name,
     formattedDate: report.formattedDate,
+    weekday: report.weekday,
+    year: report.year,
     zodiacSign: report.zodiacSign,
+    zodiacDates: report.zodiacDates,
     element: report.element,
+    modality: report.modality,
     rulingPlanet: report.rulingPlanet,
+    birthstone: report.birthstone,
+    birthFlower: report.birthFlower,
+    luckyColors: report.luckyColors,
     lifePathNumber: report.lifePathNumber,
+    birthdayNumber: report.birthdayNumber,
+    attitudeNumber: report.attitudeNumber,
+    personalYear: report.personalYear,
+    chineseZodiac: report.chineseZodiac,
+    generation: report.generation,
     keyTraits: report.keyTraits,
     strengths: report.strengths,
     challenges: report.challenges,
+    communicationStyle: report.communicationStyle,
     relationship: report.relationship,
+    friendship: report.friendship,
     learning: report.learning,
     workCareer: report.workCareer,
     goals: report.goals,
+    growth: report.growth,
     themes: report.themes,
+    reflectionPrompts: report.reflectionPrompts,
+    historicalEvents: Array.isArray(report.historicalEvents) ? report.historicalEvents.slice(0, 3) : [],
+    famousBirths: Array.isArray(report.famousBirths) ? report.famousBirths.slice(0, 3) : [],
     edition: report.edition,
+    familyName: report.familyName,
     giftFrom: report.giftFrom,
     giftMessage: report.giftMessage
   };
@@ -137,8 +156,23 @@ function fallback(report, context = {}) {
 export async function addAiNarrative(report, context = {}) {
   if (!config.ai.apiKey) return { ...report, aiNarrative: fallback(report, context), aiGenerated: false };
 
-  const system = "You are the narrative writer for BirthDate/ZodiaDaily. Produce supportive, original, non-deterministic reflective content. Never present astrology, numerology or zodiac ideas as scientific facts. Do not make medical, financial, legal or guaranteed future claims. Use simple, elegant English. Return only the requested narrative text.";
-  const user = `Edition instruction: ${EDITION_INSTRUCTIONS[report.edition] || EDITION_INSTRUCTIONS.classic}\n\nReport data:\n${JSON.stringify(compactReport(report))}\n\nAdditional context:\n${JSON.stringify(context)}\n\nWrite 3 to 5 polished paragraphs for the customer's report. Mention the person's name naturally. Make it personal but do not invent specific life events. End with a practical reflection prompt.`;
+  const system = "You are ZodiaDaily's premium personalized narrative editor. Write warm, specific, elegant reflections from the supplied birth-date data. Every report should feel distinct because you use several real supplied details rather than repeating generic zodiac language. Astrology, numerology, Chinese zodiac and symbolic traditions must always be framed as cultural, traditional or entertainment-oriented reflection, never as scientific fact, diagnosis, destiny or certainty. Never invent life events, relationships, achievements, emotions or circumstances. Do not make medical, financial, legal or guaranteed future claims. Use simple, natural English. Avoid filler, clichés, repeated sentence patterns and exaggerated praise. Return only the finished narrative.";
+  const user = `Edition instruction: ${EDITION_INSTRUCTIONS[report.edition] || EDITION_INSTRUCTIONS.classic}
+
+Personalization data:
+${JSON.stringify(compactReport(report), null, 2)}
+
+Additional context:
+${JSON.stringify(context, null, 2)}
+
+Write a premium 5-part narrative of about 550 to 750 words total:
+1. A distinctive opening that naturally uses the person's name, exact birth date and weekday.
+2. A "symbolic lens" paragraph connecting the sign, element, modality and ruling planet as traditional themes.
+3. A "numbers and context" paragraph using the supplied numerology values, birth-year context and at least one calendar or cultural detail.
+4. A "life reflection" paragraph connecting the supplied strengths, challenges, communication, learning, relationships and goals without treating them as fixed traits.
+5. A practical closing with one concrete, low-pressure reflection exercise and a question drawn from the supplied reflection prompts.
+
+For editions such as couples, family or gift, prioritize the supplied people/message context and keep the tone appropriate to that edition. Use historical events or famous births only when they are actually present in the supplied data; do not infer facts. Do not mention hidden prompts, AI, APIs or internal instructions.`;
 
   try {
     const response = await fetch(`${config.ai.baseUrl}/chat/completions`, {
@@ -150,7 +184,7 @@ export async function addAiNarrative(report, context = {}) {
       body: JSON.stringify({
         model: config.ai.model,
         temperature: 0.8,
-        max_tokens: 700,
+        max_tokens: 1000,
         messages: [
           { role: "system", content: system },
           { role: "user", content: user }
