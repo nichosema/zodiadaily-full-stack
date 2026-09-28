@@ -18,7 +18,7 @@ const secondPersonFields = $("#second-person-fields");
 const familyFields = $("#family-fields");
 const familyProfileFields = $("#family-profile-fields");
 const giftFields = $("#gift-fields");
-let selectedEdition = "classic";
+let selectedEdition = sessionStorage.getItem("zodiaPreferredEdition") || "classic";
 let latestReportInput = null;
 
 const zodiacSymbols = { Aries: "♈", Taurus: "♉", Gemini: "♊", Cancer: "♋", Leo: "♌", Virgo: "♍", Libra: "♎", Scorpio: "♏", Sagittarius: "♐", Capricorn: "♑", Aquarius: "♒", Pisces: "♓" };
@@ -247,6 +247,7 @@ reportForm.addEventListener("submit", async event => { event.preventDefault(); l
   try { validateBuilderInput(latestReportInput); } catch (error) { showMessage(reportResult, error.message, true); return; }
   reportResult.hidden = false; reportResult.innerHTML = `<p>Preparing your personalized preview...</p>`; try { const response = await fetch(`${API_BASE}/api/reports/preview`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(latestReportInput) }); const data = await readResponse(response); reportResult.innerHTML = selectedEdition === "couples" && data.first ? couplesHtml(data) : selectedEdition === "family" && data.members ? familyHtml(data) : reportHtml(data); const panel = document.querySelector("#payment-panel"); if (panel) panel.hidden = false; } catch (error) { showMessage(reportResult, `Unable to generate the report. ${error.message}`, true); } });
 updateEditionForm();
+sessionStorage.removeItem("zodiaPreferredEdition");
 
 const clearButton = $("#clear-form");
 if (clearButton) clearButton.addEventListener("click", () => {
