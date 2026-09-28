@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { buildReport, compareReports } from "./lib/report.js";
 import { createPdf } from "./lib/pdf.js";
+import { addAiNarrative } from "./lib/ai.js";
 
 const cases = [
   { edition: "classic", name: "Test Classic", birthDate: "2000-06-30" },
@@ -18,7 +19,9 @@ for (const input of cases) {
   assert.equal(report.birthDate, input.birthDate);
   assert.ok(Array.isArray(report.reflectionPrompts) && report.reflectionPrompts.length >= 5);
   assert.ok(Array.isArray(report.symbolicSnapshot) && report.symbolicSnapshot.length >= 5);
-  const pdf = await createPdf(report);
+  const narrative = await addAiNarrative({ ...report, edition: input.edition }, { test: true });
+  assert.ok(typeof narrative.aiNarrative === "string" && narrative.aiNarrative.length > 120);
+  const pdf = await createPdf({ ...narrative, edition: input.edition });
   assert.ok(Buffer.isBuffer(pdf) && pdf.length > 1000, input.edition + ": PDF was not generated");
   console.log("PASS " + input.edition + ": " + pdf.length + " bytes");
 }
