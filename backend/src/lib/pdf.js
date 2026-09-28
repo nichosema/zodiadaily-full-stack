@@ -251,6 +251,26 @@ function renderSingle(doc, report) {
   box(doc, report, 42, 710, 511, 58, "Final message",
     "The stars and symbols may inspire reflection, but your choices, relationships and actions shape your story.");
   foot(doc, report, "6");
+
+  newPage(doc, report, "Your Reflection Toolkit", "Five prompts to turn the report into a personal keepsake");
+  pill(doc, report, "MAKE IT YOURS", 42, 126, 108);
+  box(doc, report, 42, 160, 511, 72, "How to use this page",
+    "There are no right answers. Write a few words, discuss a prompt with someone you trust, or return to these questions later as your story changes.");
+  const prompts = Array.isArray(report.reflectionPrompts) && report.reflectionPrompts.length
+    ? report.reflectionPrompts
+    : [
+        "What part of this reflection feels most familiar, and what would you describe differently?",
+        "Which strength would you like to practise more intentionally?",
+        "What is one small goal you could act on during the next seven days?",
+        "Which relationship, lesson or experience are you grateful for right now?",
+        "What would you like the next chapter of your story to stand for?"
+      ];
+  prompts.slice(0, 5).forEach((prompt, i) => {
+    box(doc, report, 42, 255 + i * 82, 511, 66, `Reflection ${i + 1}`, prompt, 8.5);
+  });
+  box(doc, report, 42, 680, 511, 62, "Keep this page personal",
+    "The most valuable part of a birth-date report is the meaning you choose to create from it.");
+  foot(doc, report, "7");
 }
 
 function renderCouples(doc, comparison) {
