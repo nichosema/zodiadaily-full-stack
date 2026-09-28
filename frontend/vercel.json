@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://zodiadaily-full-stack-backend-bc5w.vercel.app/api/:path*"
+    }
+  ]
+}
