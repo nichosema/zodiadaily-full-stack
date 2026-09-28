@@ -1,4 +1,4 @@
-const API_BASE = String(window.ZODIADAILY_API_BASE || "https://upgraded-waddle-r4pvj55pj67gh946-4000.app.github.dev").replace(/\/$/, "");
+const API_BASE = "";
 
 const EDITIONS = {
   classic: { title: "Classic Personal Discovery", description: "A balanced personal report for discovery and reflection." },
