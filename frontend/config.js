@@ -1,2 +1,2 @@
-// Production API endpoint for the deployed ZodiaDaily backend.
-window.ZODIADAILY_API_BASE = "https://zodiadaily-full-stack-backend-bc5w.vercel.app";
+// Use the same-origin Vercel proxy so browser requests do not hit cross-origin CORS restrictions.
+window.ZODIADAILY_API_BASE = "";
