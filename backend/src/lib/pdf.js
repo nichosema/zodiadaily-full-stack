@@ -141,8 +141,12 @@ function cover(doc, report, title = editionTitle(report.edition)) {
     Capricorn: "SEA-GOAT", Aquarius: "WATER-BEARER", Pisces: "FISH"
   }[report.zodiacSign] || "BIRTH DATE";
 
-  doc.circle(297, 310, 88).fillAndStroke(theme.soft, theme.accent);
+  doc.circle(297, 310, 98).fillAndStroke(theme.soft, theme.line);
+  doc.circle(297, 310, 88).lineWidth(2).strokeColor(theme.accent).stroke();
   doc.circle(297, 310, 75).lineWidth(1.4).strokeColor(theme.ink).stroke();
+  [[297,208],[366,242],[397,310],[366,378],[297,412],[228,378],[197,310],[228,242]].forEach(([x,y], i) => {
+    doc.circle(x, y, i % 2 ? 2.2 : 1.7).fill(theme.accent);
+  });
   t(doc, "BIRTH SIGN", 220, 258, 154, { color: theme.accent, font: "Helvetica-Bold", size: 8, max: 20, align: "center" });
   t(doc, sign, 225, 287, 144, { color: theme.ink, font: "Helvetica-Bold", size: 18, max: 30, align: "center" });
   t(doc, animal, 235, 325, 124, { color: theme.ink, font: "Helvetica-Bold", size: 9, max: 30, align: "center" });
@@ -150,7 +154,8 @@ function cover(doc, report, title = editionTitle(report.edition)) {
 
   const coverName = report.name || (report.members?.[0]?.name) || "Your keepsake";
   t(doc, coverName, 42, 432, 511, { color: theme.ink, font: "Helvetica-Bold", size: 18, max: 70, align: "center" });
-  t(doc, String(report.formattedDate || "").toUpperCase(), 42, 462, 511, { color: theme.ink, size: 10.5, max: 60, align: "center" });
+  doc.roundedRect(195, 458, 204, 25, 12).fillAndStroke(theme.soft, theme.line);
+  t(doc, String(report.formattedDate || "").toUpperCase(), 203, 466, 188, { color: theme.ink, font: "Helvetica-Bold", size: 8.5, max: 60, align: "center" });
 
   if (report.edition === "gift" && report.giftFrom) {
     t(doc, `Prepared as a birthday gift from ${report.giftFrom}`, 42, 510, 511, { color: theme.muted, size: 9, max: 90, align: "center" });
@@ -160,6 +165,7 @@ function cover(doc, report, title = editionTitle(report.edition)) {
     t(doc, "YOUR DATE • YOUR SYMBOLS • YOUR STORY", 42, 510, 511, { color: theme.muted, size: 9, max: 70, align: "center" });
   }
 
+  doc.strokeColor(theme.line).lineWidth(0.8).moveTo(150, 650).lineTo(444, 650).stroke();
   t(doc, "PERSONAL • REFLECTIVE • DESIGNED TO KEEP", 42, 670, 511, {
     color: theme.accent, font: "Helvetica-Bold", size: 7.5, max: 80, align: "center"
   });
