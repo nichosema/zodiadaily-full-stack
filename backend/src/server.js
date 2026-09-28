@@ -42,7 +42,7 @@ setInterval(() => {
   for (const [key, bucket] of requestBuckets) if (bucket.started < cutoff) requestBuckets.delete(key);
 }, 60_000).unref();
 
-app.use(cors({ origin: config.frontendUrl === "*" ? true : config.frontendUrl, methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type", "X-Shopify-Hmac-Sha256"], maxAge: 600 }));
+app.use(cors({ origin: true, methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type", "X-Shopify-Hmac-Sha256"], maxAge: 600 }));
 app.post("/api/analytics/events", express.json({ limit: "4kb" }), async (req, res) => {
   if (!allowRequest(req, "analytics-event", 30)) return res.status(429).json({ error: "Too many analytics events. Please wait a moment and try again." });
   const allowedEvents = new Set(["preview_created", "checkout_started", "payment_confirmed", "pdf_downloaded"]);
