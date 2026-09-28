@@ -16,6 +16,8 @@ for (const input of cases) {
   report.giftMessage = input.giftMessage || "";
   assert.equal(report.name, input.name);
   assert.equal(report.birthDate, input.birthDate);
+  assert.ok(Array.isArray(report.reflectionPrompts) && report.reflectionPrompts.length >= 5);
+  assert.ok(Array.isArray(report.symbolicSnapshot) && report.symbolicSnapshot.length >= 5);
   const pdf = await createPdf(report);
   assert.ok(Buffer.isBuffer(pdf) && pdf.length > 1000, input.edition + ": PDF was not generated");
   console.log("PASS " + input.edition + ": " + pdf.length + " bytes");
