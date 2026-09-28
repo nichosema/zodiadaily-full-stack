@@ -1,4 +1,4 @@
-const API_BASE = "";
+const API_BASE = window.ZODIADAILY_API_BASE || "";
 
 const EDITIONS = {
   classic: { title: "Classic Personal Discovery", description: "A balanced personal report for discovery and reflection." },
