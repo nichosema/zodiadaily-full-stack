@@ -240,7 +240,7 @@ document.querySelectorAll(".journey-card").forEach(card => card.addEventListener
   document.querySelector("#builder")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }));
 $("#familyMembers").addEventListener("change", updateFamilyFields);
-async function readResponse(response) { const type = response.headers.get("content-type") || ""; const data = type.includes("application/json") ? await response.json() : { error: await response.text() }; if (!response.ok) throw new Error(data.error || `Request failed with status ${response.status}`); return data; }
+async function readResponse(response) { const type = response.headers.get("content-type") || ""; const data = type.includes("application/json") ? await response.json() : { error: await response.text() }; if (!response.ok) { const message = typeof data.error === "string" ? data.error : data.error?.message || JSON.stringify(data.error || data); throw new Error(message || `Request failed with status ${response.status}`); } return data; }
 reportForm.addEventListener("submit", async event => { event.preventDefault(); latestReportInput = { name: $("#customerName").value.trim(), birthDate: $("#birthDate").value, edition: selectedEdition, secondName: $("#coupleSecondName").value.trim(), secondBirthDate: $("#coupleSecondBirthDate").value, familyName: $("#familyName").value.trim(), familyMembers: Number($("#familyMembers").value), familyProfiles: readFamilyProfiles(), giftFrom: $("#giftFrom").value.trim(), giftMessage: $("#giftMessage").value.trim() };
   // A new preview must never inherit an older paid session.
   if (typeof resetPurchaseState === "function") resetPurchaseState();
